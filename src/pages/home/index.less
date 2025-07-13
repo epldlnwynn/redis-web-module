@@ -1,0 +1,32 @@
+
+.indexWrap {
+    margin-top: var(--header-height);
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: calc(var(--main-height) - 100px);
+
+
+    .readme{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background-color: rgba(var(--surface-color-rgb),.4);
+        padding: 50px;
+        border-radius: var(--border-radius-big);
+        box-shadow: 0 0 20px 1px rgba(var(--mask-background-color),.06);
+
+        h2{
+            text-transform: uppercase;
+        }
+        h3{
+            padding-top: 10px;
+            font-weight: normal;
+            opacity: 0.6;
+        }
+    }
+
+}

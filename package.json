@@ -1,0 +1,62 @@
+{
+    "name": "redis-web-module",
+    "version": "1.0.0",
+    "description": "A simple Redis data management tool",
+    "private": true,
+    "scripts": {
+        "start": "export NODE_OPTIONS=--openssl-legacy-provider;cross-env UMI_ENV=dev umi dev",
+        "build:dist": "export NODE_OPTIONS=--openssl-legacy-provider;cross-env UMI_ENV=prod umi build",
+        "build:zip": "export NODE_OPTIONS=--openssl-legacy-provider;rm -rf redis-mudule.zip && cross-env UMI_ENV=prod umi build && node index.js && zip -q -r -o -m redis-mudule.zip redis-module",
+        "build:prod": "export NODE_OPTIONS=--openssl-legacy-provider;rm -rf ../redis-desktop/public && cross-env UMI_ENV=prod umi build && node index.js && mv redis-module ../redis-desktop/public",
+        "formatcode": "prettier --write '**/*.{js,jsx,tsx,ts,less,md,json}'",
+        "postinstall": "umi generate tmp",
+        "test": "umi-test",
+        "test:coverage": "umi-test --coverage"
+    },
+    "gitHooks": {
+        "pre-commit": "lint-staged"
+    },
+    "lint-staged": {
+        "*.{js,jsx,less,md,json}": [
+            "prettier --write"
+        ],
+        "*.ts?(x)": [
+            "prettier --parser=typescript --write"
+        ]
+    },
+    "author": {
+        "name": "Devhub.vip Ltd.",
+        "url": "https://github.com/epldlnwynn/redis-web-module"
+    },
+    "dependencies": {
+        "axios": "^0.24.0",
+        "clipboard": "^2.0.11",
+        "crypto-browserify": "^3.12.0",
+        "crypto-js": "^4.1.1",
+        "react": "16.13.1",
+        "react-dom": "16.13.1",
+        "react-intl-universal": "^2.9.1",
+        "react-use": "^17.2.4",
+        "umi": "^3.5.20"
+    },
+    "devDependencies": {
+        "@types/crypto-js": "^4.2.2",
+        "@types/react": "^17.0.0",
+        "@types/react-dom": "^17.0.0",
+        "@umijs/preset-dumi": "^1.1.38",
+        "@umijs/preset-react": "1.x",
+        "@umijs/test": "^3.5.20",
+        "babel-plugin-transform-remove-console": "^6.9.4",
+        "compression-webpack-plugin": "^6.1.1",
+        "cross-env": "^7.0.3",
+        "file-loader": "^6.2.0",
+        "html-minifier": "^4.0.0",
+        "lint-staged": "^10.0.7",
+        "prettier": "^2.2.0",
+        "svg-sprite-loader": "^6.0.11",
+        "typescript": "^4.1.2",
+        "uglify-js": "^3.17.4",
+        "url-loader": "^4.1.1",
+        "yorkie": "^2.0.0"
+    }
+}

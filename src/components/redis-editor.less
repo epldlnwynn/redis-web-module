@@ -1,0 +1,173 @@
+
+.stringItem .header,.editorContainer>div{
+    box-shadow: 0 0 5px 1px rgba(0,0,0,.06);
+    border-radius: var(--border-radius-big);
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+}
+
+.stringItem {
+
+    .header {
+        display: flex;
+        align-items: center;
+        padding: 9px 10px;
+        gap: 10px;
+        border-radius: var(--border-radius-big);
+
+        label{
+            text-transform: uppercase;
+            padding-left: 8px;
+            min-width: 65px;
+            text-align: center;
+        }
+
+        button{
+            padding: 6px 10px;
+        }
+
+        svg{
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+}
+
+.dialogEditorTTL {
+    width: 500px;
+
+    >div{
+        padding: 30px;
+        display: flex;
+        gap: 10px;
+
+        select{
+            width: 80px;
+        }
+    }
+
+}
+
+.editorContainer {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    margin-top: 15px;
+
+    >div {
+        overflow: hidden;
+    }
+
+    .editTable{
+        border-radius: 0;
+        border: none;
+        height: 366px;
+        position: relative;
+        overflow-y: visible;
+
+        &[role='list'],&[role='set']{
+            height: 490px;
+        }
+
+        table{
+            width: 100%;
+            table-layout: fixed;
+            border-spacing: 1px;
+            border: 1px solid rgba(var(--primary-color-rgb),.5);
+            background-color: var(--body-background-color);
+        }
+
+        thead{
+            position: sticky;
+            top: 0px;
+            user-select: none;
+            background-color: var(--body-background-color);
+        }
+
+        th{
+            height: 40px;
+        }
+        td {
+            height: 30px;
+            background-color: var(--surface-color);
+        }
+        td,th{
+            border: 1px solid rgba(var(--primary-color-rgb),.5);
+            text-align: center;
+            transition: all .2s;
+            cursor: default;
+            white-space: nowrap;
+        }
+
+        tbody>tr:hover td,tbody>tr.active td{
+            background-color: var(--light-text-color);
+            color: var(--surface-color);
+        }
+    }
+
+    .editorKey{
+
+        &[role='hash'],&[role='zset'] {
+            textarea {
+                height: 70px;
+            }
+        }
+    }
+
+    .editorValue{
+        flex: auto;
+
+
+        &[role='hash'],&[role='zset'],&[role='set'],&[role='list'] {
+            textarea {
+                height: 260px;
+            }
+        }
+
+    }
+
+    .toolbar{
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        padding: 8px 10px;
+        background-color: rgba(var(--primary-color-rgb), .04);
+        border-bottom: 1px solid var(--border-color);
+
+        p{
+            flex: auto;
+        }
+        dl{
+            display: flex;
+            gap: 5px;
+            align-items: center;
+
+            dt{
+                font-weight: 500;
+            }
+            dd{
+                opacity: 0.8;
+            }
+        }
+        svg{
+            width: 20px;
+            height: 20px;
+        }
+        button {
+            padding: 5px 10px;
+        }
+        select{
+            padding: 4px 5px;
+        }
+    }
+
+    textarea{
+        width: 100%;
+        transition: all 0.1s;
+        border: none;
+        height: calc(100vh - var(--header-height) - 140px);
+        border-radius: 0 0 var(--border-radius-big) var(--border-radius-big);
+    }
+
+}

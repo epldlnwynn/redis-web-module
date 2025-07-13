@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1" />
+    <meta name="google" content="notranslate" />
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+    <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes" />
+    <link href="/static/favicon/apple-touch-icon.png?v=<%= context.config.define.version %>" rel="apple-touch-icon" sizes="180x180" />
+    <link href="/static/favicon/favicon-32x32.png?v=<%= context.config.define.version %>" rel="icon" sizes="32x32" type="image/png" />
+    <link href="/static/favicon/favicon-16x16.png?v=<%= context.config.define.version %>" rel="icon" sizes="16x16" type="image/png" />
+    <link rel="shortcut icon" href="/static/favicon/apple-touch-icon.png?v=<%= context.config.define.version %>" type="image/x-icon" />
+    <link rel="icon" href="/static/favicon/favicon.ico?v=<%= context.config.define.version %>" type="image/x-icon" />
+    <link rel="bookmark" href="/static/favicon/bookmark.png?v=<%= context.config.define.version %>" type="image/x-icon" />
+    <link rel="stylesheet" href="/static/css/global.css?v=<%= context.config.define.version %>" />
+    <title><%= context.config.title %></title>
+</head>
+
+<body>
+    <script>
+        window.onresize = function (){
+            const vw = document.documentElement.offsetWidth, vh = document.documentElement.offsetHeight
+            if (vw < 1440) {
+                let scale = (vw / 1440), vp = document.getElementById("viewport");
+                let content = vp.getAttribute("content");
+                if (scale < 0.2) scale = 0.2;
+                content = content.replace("initial-scale=1", 'initial-scale=' + scale.toFixed(2));
+                content = content.replace("minimum-scale=1", 'minimum-scale=' + scale.toFixed(2));
+                vp.setAttribute("content", content)
+            }
+
+            if ((vh / vw) > 2) {
+                setTimeout(() => {
+                    const main = document.querySelector('.main-wrap')
+                    if (main) main.style.minHeight = 'auto'
+                }, 1000)
+            }
+
+        }
+        window.onresize()
+    </script>
+    <div id="root" class="page-chats">
+        <div class="page-loader">
+            <div class="loader-inner ball-beat">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+    </div>
+    <div class="listener-layout"></div>
+    <div class="operator-layout"></div>
+</body>
+</html>

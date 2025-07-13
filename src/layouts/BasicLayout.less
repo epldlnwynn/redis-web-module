@@ -1,0 +1,317 @@
+
+.header{
+    height:var(--header-height);
+    display:flex;
+    align-items:center;
+    z-index:1000;
+    position:fixed;
+    width:100%;
+    backdrop-filter:blur(8px);
+    background-color:var(--surface-color);
+    border-bottom: 1px solid var(--light-border-color);
+
+    >div{
+        width: 100%;
+        padding:0 12px;
+        gap: 12px;
+
+        button{
+            padding-top:10px;
+            padding-bottom:10px;
+
+        }
+
+    }
+
+    .buttonGroups {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+
+        button{
+            padding: 6px;
+            line-height: 0;
+            width: 40px;
+            height: 36px;
+            border: none;
+            border-radius: 0;
+        }
+    }
+
+    .social button svg{
+        padding: 4px;
+    }
+
+}
+
+.sidebar {
+    position: relative;
+    width: var(--sidebar-width);
+    min-width: 300px;
+    max-width: 50%;
+    margin-top: var(--header-height);
+    background-color:var(--surface-color);
+    border-right: 1px solid var(--light-border-color);
+    user-select: none;
+
+    svg{
+        color: var(--sidebar-icon-color);
+    }
+
+    .draggable{
+        position: absolute;
+        cursor: ew-resize;
+        right: -3px;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        transition: width 0.2s;
+    }
+
+    .serverList {
+        display: flex;
+        flex-direction: column;
+        padding: 0px 1px 8px 4px;
+        overflow-y: auto;
+        height: calc(100vh - var(--header-height));
+    }
+
+}
+
+
+.dialogSettings{
+    width: 600px;
+
+    >div {
+        max-height: 420px;
+        padding: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead th {
+        height: auto;
+        padding-top: 16px;
+        padding-bottom: 4px;
+    }
+    thead:first-child th{
+        padding-top: 0;
+    }
+    tbody tr:hover {
+        background-color: var(--body-background-color);
+    }
+    tbody th{
+        font-weight: 400;
+        padding-left: 16px;
+        width: 100%;
+    }
+    th{
+        height: 46px;
+        text-align: left;
+        vertical-align: middle;
+    }
+    td {
+        padding-right: 10px;
+        text-align: right;
+        vertical-align: middle;
+    }
+    tbody td select{
+        width: 100%;
+    }
+
+    .theme {
+        background-color: var(--surface-color);
+        position: relative;
+        display: flex;
+        align-items: center;
+        border: 1px solid rgba(var(--border-color-rgb),0.4);
+        border-radius: 17px;
+        width: 180px;
+        padding: 4px;
+        gap: 6px;
+        margin-left: auto;
+        justify-content: left;
+        transition:all linear .2s;
+
+        &[role='auto'] span.auto{
+            color: var(--light-text-color);
+        }
+        &[role='light']{
+            justify-content: center;
+            span.light{
+                color: var(--light-text-color);
+            }
+        }
+        &[role='dark'] {
+            justify-content: right;
+
+            span.dark{
+                color: var(--light-text-color);
+            }
+
+        }
+
+        span{
+            cursor: pointer;
+            height: 25px;
+            padding: 2px;
+            display: flex;
+            position: relative;
+            z-index: 12;
+        }
+
+
+        &:after {
+            content: ' ';
+            position: absolute;
+            top: 3px;
+            height: 27px;
+            background-color: #f1f1f1;
+            width: 29.6%;
+            border-radius: 15px;
+            z-index: 10;
+        }
+
+    }
+
+}
+
+
+.dialogNewConnection{
+    width: 650px;
+
+    .menuList{
+        display: flex;
+        align-items: center;
+
+
+        span{
+            flex: 1;
+            padding: 12px 0;
+            text-align: center;
+            background-color: var(--body-background-color);
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .active{
+            cursor: default;
+            background-color: transparent;
+            pointer-events: none;
+        }
+    }
+
+
+    .contentWarp {
+        padding: 15px 20px;
+        min-height: 360px;
+
+        h2{
+            font-size: 16px;
+            line-height: 26px;
+            padding-left: 10px;
+            padding-top: 10px;
+        }
+        h2:first-child {
+            padding-top: 0;
+        }
+
+        .item{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            height: 46px;
+            padding: 0 10px;
+
+            &:hover{
+                background-color: var(--body-background-color);
+            }
+
+            label{
+                min-width: 105px;
+                white-space: nowrap;
+                font-size: 14px;
+                font-weight: 400;
+            }
+
+            span{
+                flex: auto;
+
+            }
+
+            .port{
+                flex: none;
+                width: 130px;
+            }
+
+            input {
+                border: 1px solid var(--border-color);
+                padding: 6px;
+                border-radius: var(--border-radius);
+                font-size: 14px;
+                line-height: 20px;
+                background-color: var(--surface-color);
+                width: 100%;
+            }
+        }
+
+        .radioList{
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            height: 46px;
+            padding: 10px 10px 10px 20px;
+
+            label{
+                display: flex;
+                gap: 10px;
+                cursor: pointer;
+            }
+            input{
+                width: 18px;
+                height: 18px;
+                vertical-align: middle;
+                border-radius: 100%;
+            }
+        }
+
+        .security {
+            padding:0 10px;
+
+            .type{
+                padding-left: 130px;
+                padding-top: 18px;
+                padding-bottom: 5px;
+            }
+
+        }
+
+        .advancedSettings{
+
+            .item{
+
+                label{
+                    width: 200px;
+                }
+            }
+
+
+        }
+
+    }
+
+    .buttons {
+        display: flex;
+        gap: 10px;
+        padding: 20px;
+
+        span{
+            flex: auto;
+        }
+    }
+
+}
