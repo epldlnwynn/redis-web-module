@@ -1,9 +1,17 @@
 
 .stringItem .header,.editorContainer>div{
-    box-shadow: 0 0 5px 1px rgba(0,0,0,.06);
     border-radius: var(--border-radius-big);
     background-color: var(--surface-color);
     border: 1px solid var(--border-color);
+
+    &:hover{
+        box-shadow: 0 0 5px 1px rgba(0,0,0,.06);
+    }
+}
+
+.editorContainer .toolbar svg,.stringItem .header svg{
+    width: 18px;
+    height: 18px;
 }
 
 .stringItem {
@@ -11,25 +19,25 @@
     .header {
         display: flex;
         align-items: center;
-        padding: 9px 10px;
+        padding: 6px 10px;
         gap: 10px;
         border-radius: var(--border-radius-big);
 
         label{
             text-transform: uppercase;
             padding-left: 8px;
-            min-width: 65px;
             text-align: center;
         }
 
-        button{
-            padding: 6px 10px;
+        input{
+            padding-top:4px;
+            padding-bottom: 4px;
         }
 
-        svg{
-            width: 20px;
-            height: 20px;
+        button{
+            padding: 5px 10px;
         }
+
     }
 
 }
@@ -54,6 +62,7 @@
     gap: 10px;
     flex-direction: column;
     margin-top: 15px;
+    height: calc(var(--main-height) - 80px);
 
     >div {
         overflow: hidden;
@@ -62,12 +71,12 @@
     .editTable{
         border-radius: 0;
         border: none;
-        height: 366px;
+        height: 350px;
         position: relative;
         overflow-y: visible;
 
         &[role='list'],&[role='set']{
-            height: 490px;
+            height: 400px;
         }
 
         table{
@@ -86,10 +95,10 @@
         }
 
         th{
-            height: 40px;
+            height: 36px;
         }
         td {
-            height: 30px;
+            height: 28px;
             background-color: var(--surface-color);
         }
         td,th{
@@ -97,13 +106,25 @@
             text-align: center;
             transition: all .2s;
             cursor: default;
-            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        td>div{
+            white-space: normal;
+            box-sizing: border-box;
+            overflow-wrap: break-word;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            line-height: 22px;
+            height: 22px;
+            text-align: left;
         }
 
         tbody>tr:hover td,tbody>tr.active td{
             background-color: var(--light-text-color);
             color: var(--surface-color);
         }
+
+
     }
 
     .editorKey{
@@ -117,13 +138,15 @@
 
     .editorValue{
         flex: auto;
+        display: flex;
+        flex-direction: column;
 
 
-        &[role='hash'],&[role='zset'],&[role='set'],&[role='list'] {
-            textarea {
-                height: 260px;
-            }
-        }
+        //&[role='hash'],&[role='zset'],&[role='set'],&[role='list'] {
+        //    textarea {
+        //        height: 305px;
+        //    }
+        //}
 
     }
 
@@ -131,7 +154,7 @@
         display: flex;
         gap: 15px;
         align-items: center;
-        padding: 8px 10px;
+        padding: 6px 10px;
         background-color: rgba(var(--primary-color-rgb), .04);
         border-bottom: 1px solid var(--border-color);
 
@@ -150,15 +173,12 @@
                 opacity: 0.8;
             }
         }
-        svg{
-            width: 20px;
-            height: 20px;
-        }
         button {
-            padding: 5px 10px;
+            padding: 4px 10px;
         }
         select{
-            padding: 4px 5px;
+            padding: 2px 5px;
+            height: 26px;
         }
     }
 
@@ -166,8 +186,13 @@
         width: 100%;
         transition: all 0.1s;
         border: none;
-        height: calc(100vh - var(--header-height) - 140px);
+        flex: auto;
+        height22: calc(100vh - var(--header-height) - 140px);
         border-radius: 0 0 var(--border-radius-big) var(--border-radius-big);
+
+        &:hover{
+            box-shadow: none;
+        }
     }
 
 }

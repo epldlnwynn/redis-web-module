@@ -357,7 +357,7 @@ button>[role='icon-loading']{width:0px;height:20px;margin-right:-8px;}
 [role='zset'] label{background-color: #e9a4f3}
 
 
-.main{flex:auto;margin-top:0;background-color:var(--body-background-color)}
+.main{flex:auto;margin-top:0;background-color:var(--body-background-color);width:0}
 .main .main-wrap{min-height:var(--main-height)}
 
 

@@ -55,26 +55,34 @@
     background-color:var(--surface-color);
     border-right: 1px solid var(--light-border-color);
     user-select: none;
+    display: flex;
+    flex-direction: row;
+    gap: 3px;
 
     svg{
         color: var(--sidebar-icon-color);
     }
 
     .draggable{
-        position: absolute;
         cursor: ew-resize;
-        right: -3px;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        transition: width 0.2s;
+        width: 2px;
+        transition: all 0.2s;
+        position: relative;
+        z-index: 500;
+
+        &.active,&:hover{
+            background-color: rgba(var(--mask-background-color), 0.5);
+            box-shadow: 0 0 3px rgba(var(--mask-background-color), 0.5);
+        }
     }
 
     .serverList {
         display: flex;
+        flex: auto;
         flex-direction: column;
         padding: 0px 1px 8px 4px;
         overflow-y: auto;
+        margin-right: -4px;
         height: calc(100vh - var(--header-height));
     }
 

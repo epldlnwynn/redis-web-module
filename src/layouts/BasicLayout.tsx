@@ -138,15 +138,17 @@ export default class BasicLayout extends React.PureComponent<any, ParamType> {
         let isDragging = false, offsetX: number, initialWidth: number;
         const draggable = document.getElementById('sidebar-draggable') as HTMLDivElement
         const resizable = document.getElementById('sidebar-layout') as HTMLDivElement
-        const style = getComputedStyle(resizable), minWidth = parseInt(style.minWidth), maxWidth = parseInt(style.maxWidth) / 100 * document.body.offsetWidth
+        const style = getComputedStyle(resizable),
+            minWidth = parseInt(style.minWidth),
+            maxWidth = parseInt(style.maxWidth) / 100 * document.body.offsetWidth
 
         draggable.addEventListener('mousedown', function(e) {
             isDragging = true;
             offsetX = e.clientX - draggable.getBoundingClientRect().left;
-            initialWidth = resizable.offsetWidth; // 初始宽度
+            initialWidth = parseInt(style.width) || resizable.offsetWidth; // 初始宽度
             document.body.style.cursor = 'ew-resize';
+            draggable.classList.add(styles.active)
         });
-
         document.addEventListener('mousemove', function(e) {
             if (isDragging) {
                 let x = e.clientX - offsetX;
@@ -157,16 +159,15 @@ export default class BasicLayout extends React.PureComponent<any, ParamType> {
                 } else if (widthChange <= minWidth) {
                     widthChange = x = minWidth
                 }
-                draggable.style.left = (x - 2) + 'px';
                 resizable.style.width = widthChange + 'px'; // 更新宽度
                 conf.setSidebarWidth(widthChange + 'px')
             }
         });
-
         document.addEventListener('mouseup', function(e) {
             e.preventDefault(), e.stopPropagation()
             if (isDragging) document.body.removeAttribute("style")
             isDragging = false;
+            draggable.classList.remove(styles.active)
         });
 
 
@@ -241,16 +242,25 @@ export default class BasicLayout extends React.PureComponent<any, ParamType> {
     handleSecurityTunnel(evt: any) {
         const e = evt.currentTarget, val = e.value
         const el = document.getElementById(val) as HTMLDivElement
+        const { editServer } = this.state
 
         if (!el.hasAttribute("aria-hidden")) {
             el.setAttribute("aria-hidden", "true")
             e.checked = false
+            if (editServer.security) {
+                editServer.security.type = undefined
+                editServer.security.tunnel = undefined
+                editServer.security.tls = undefined
+                this.setState({editServer: {...editServer}})
+            }
             return
         }
 
         if (val.endsWith("tunnel")) {
+            this.handleConnectionChange("security.type","tunnel")
             el.previousElementSibling?.setAttribute("aria-hidden", "true")
         } else {
+            this.handleConnectionChange("security.type","tls")
             el.nextElementSibling?.setAttribute("aria-hidden", "true")
         }
 
@@ -282,14 +292,20 @@ export default class BasicLayout extends React.PureComponent<any, ParamType> {
 
         e.disabled = true, e.role = 'icon-loading'
         APIs.serverTest(editServer).then(model => {
-            const {state, version} = model.data
-            console.log(model.data)
-            if (state) {
-                const msg = intl.get("connection.error.success")
-                alert(msg + version)
+            console.log(model)
+
+            if (model.isSuccess()) {
+                const {state, version} = model.data
+                if (state) {
+                    const msg = intl.get("connection.error.success")
+                    alert(msg + version)
+                } else {
+                    alert(intl.get("connection.error.fail"))
+                }
             } else {
-                alert(intl.get("connection.error.fail"))
+                toast(model.message)
             }
+
         }).finally(() => {
             e.disabled = false, e.role = ''
         })
@@ -716,7 +732,7 @@ export default class BasicLayout extends React.PureComponent<any, ParamType> {
                                         <span>
                                             <input type="text"
                                                    defaultValue={editServer?.security?.tunnel?.host}
-                                                   onInput={e => this.handleConnectionChange("security.tunnel.ip", e.currentTarget.value)}
+                                                   onInput={e => this.handleConnectionChange("security.tunnel.host", e.currentTarget.value)}
                                                    placeholder={intl.get("connection.settings.security.tunnel.address.placeholder")}/>
                                         </span>
                                         :
@@ -732,7 +748,7 @@ export default class BasicLayout extends React.PureComponent<any, ParamType> {
                                         <span>
                                             <input type="text"
                                                    defaultValue={editServer?.security?.tunnel?.username}
-                                                   onInput={e => this.handleConnectionChange("security.tunnel.user", e.currentTarget.value)}
+                                                   onInput={e => this.handleConnectionChange("security.tunnel.username", e.currentTarget.value)}
                                                    placeholder={intl.get("connection.settings.security.tunnel.user.placeholder")} />
                                         </span>
                                     </div>

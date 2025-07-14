@@ -28,7 +28,7 @@ const hash: FC<Props> = (p) => {
 
     return <table>
         <colgroup>
-            <col style={{width:'100px'}} />
+            <col style={{minWidth:'100px',width:'100px'}} />
             <col style={{width:'40%'}} />
             <col />
         </colgroup>
@@ -44,7 +44,7 @@ const hash: FC<Props> = (p) => {
                 return <tr key={item.field} onClick={e => handleItem(p, item, i, e)} className={i == p.data.itemIndex ? styles.active : ''}>
                     <td>{++index}</td>
                     <td>{item.field}</td>
-                    <td>{item.value}</td>
+                    <td><div>{item.value}</div></td>
                 </tr>
             })}
         </tbody>
@@ -54,7 +54,7 @@ const zset: FC<Props> = (p) => {
 
     return <table>
         <colgroup>
-            <col style={{width:'100px'}} />
+            <col style={{minWidth:'100px',width:'100px'}} />
             <col style={{width:'40%'}} />
             <col />
         </colgroup>
@@ -80,7 +80,7 @@ const listOrSet: FC<Props> = (p) => {
 
     return <table>
         <colgroup>
-            <col style={{width:'100px'}} />
+            <col style={{minWidth:'100px',width:'100px'}} />
             <col />
         </colgroup>
         <thead>
@@ -93,7 +93,7 @@ const listOrSet: FC<Props> = (p) => {
         {p.data.children?.map((item, i) => {
             return <tr key={index} onClick={e => handleItem(p, item, i, e)} className={i == p.data.itemIndex ? styles.active : ''}>
                 <td>{++index}</td>
-                <td>{item}</td>
+                <td><div>{item}</div></td>
             </tr>
         })}
         </tbody>

@@ -53,7 +53,7 @@ interface Server extends RedisInfo {
     username?: string;
 
     security?: {
-        type: 'tls' | 'tunnel';
+        type: 'tls' | 'tunnel' | undefined;
         tls?: {
             publicKey: string;
             publicName?: string;
