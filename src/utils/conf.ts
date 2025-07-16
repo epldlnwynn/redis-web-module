@@ -22,6 +22,16 @@ const conf = {
 
 }
 
-
+export const DEFAULT_SERVER: Server = {
+    name: "",
+    host: "",
+    port: 6379,
+    db: [],
+    advancedSettings: {
+        defaultFilter: "*",
+        namespaceSeparator: ":",
+        scanUpperLimit: 1000,
+    }
+}
 
 export default conf

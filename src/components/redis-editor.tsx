@@ -14,6 +14,7 @@ interface Props {
 
     handleReloadValue?: (e: HTMLButtonElement) => void;
     handleDelete?: (name: string, e: HTMLButtonElement) => void;
+    handleDeleteItem?: (e: HTMLButtonElement) => void;
     handleSaveTtl?: (ttl: any, e: HTMLButtonElement) => void;
     handleRenameSave?: (oldName: string, newName: string, e: HTMLButtonElement) => void;
     handleSaveItem?: (field: string, value: string, e: HTMLButtonElement) => void;
@@ -151,6 +152,11 @@ const handleDelete = (p: Props, e: HTMLButtonElement) => {
 
     p.handleDelete && p.handleDelete(p.data.full || p.data.name, e)
 }
+const handleDeleteItem = (p: Props, e: HTMLButtonElement) => {
+    if (!confirm(intl.get("editor.delete-row.tip.confirm"))) return;
+
+    p.handleDeleteItem && p.handleDeleteItem(e)
+}
 
 let prevTr: any = null
 const handleItem = (p:Props, item: KeyInfo, index: number, e: any) => {
@@ -267,6 +273,10 @@ const RedisEditor: FC<Props> = (p) => {
                         <Icon type="icon-save"></Icon>
                         {intl.get("editor.toolbar.button.save")}
                     </button>
+                    <button type="button" onClick={e => handleDeleteItem(p, e.currentTarget)}>
+                        <Icon type="icon-delete"></Icon>
+                        {intl.get("editor.toolbar.button.delete-row")}
+                    </button>
                 </div>
 
                 <textarea
@@ -282,8 +292,12 @@ const RedisEditor: FC<Props> = (p) => {
                 <div className={styles.toolbar}>
                     <dl>
                         <dt>{intl.get("editor.toolbar.size.title")}:</dt>
-                        <dd>{p.data.size} {intl.get("editor.toolbar.size.unit")}</dd>
+                        <dd>{p.data.size || 0} {intl.get("editor.toolbar.size.unit")}</dd>
                     </dl>
+                    {(key.type == "list" || key.type == "set") &&<dl>
+                        <dt>{intl.get("editor.toolbar.length.title")}:</dt>
+                        <dd>{key.children?.length || 0} {intl.get("editor.toolbar.length.unit")}</dd>
+                    </dl>}
                     <p></p>
                     <select key={serializeIndex} onChange={e => handleSelectChange(e.currentTarget, key.content)} defaultValue={serializeIndex}>
                         {SERIALIZE_LIST.map((name,i) => <option key={name} value={i} defaultChecked={i === serializeIndex}>{name}</option>)}
@@ -295,6 +309,10 @@ const RedisEditor: FC<Props> = (p) => {
                     <button type="button" onClick={e => handleExportFile(e.currentTarget, key)}>
                         <Icon type="icon-export"></Icon>
                         {intl.get("editor.toolbar.button.export")}
+                    </button>
+                    <button type="button" aria-hidden={!(key?.type == 'list' || key.type == "set")} onClick={e => handleDeleteItem(p, e.currentTarget)}>
+                        <Icon type="icon-delete"></Icon>
+                        {intl.get("editor.toolbar.button.delete-row")}
                     </button>
                     <button type="button" aria-hidden={key?.type == 'hash' || key.type == "zset"} onClick={e => handleSaveValue(p, e.currentTarget)}>
                         <Icon type="icon-save"></Icon>

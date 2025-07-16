@@ -5,125 +5,32 @@ import styles from './BasicLayout.less'
 import classNames from "classnames";
 import Dialog from "@/components/dialog";
 import intl from "@/utils/intl";
-import RedisContext,{redisContext, IRedisContext} from "@/context/redis-context";
+import RedisContext from "@/context/redis-context";
 import InputFile from "@/components/input-file";
 import InputNumber from "@/components/input-number";
 import RedisTree from "@/components/redis-tree";
-import conf from "@/utils/conf";
+import conf, {DEFAULT_SERVER} from "@/utils/conf";
 import APIs from "@/utils/APIs";
 import {history} from "@@/core/umiExports";
-import {clipboardJS} from "@/utils/common";
-
-
-interface ParamType {
-    redisContext: IRedisContext;
-    dlgSettings: boolean;
-    dlgConnection: boolean;
-    editServer: Server;
-    serverList: Array<Server>;
-    serverIndex: number;
-    sidebarWidth: string;
-}
+import {clipboardJS, dragByWidth} from "@/utils/common";
+import {NewConnBasicLayout} from "@/handles/NewConnBasicLayout";
+import eventBus from "listen-events";
 
 
 const win = window as any
 win.eventBus = {}
-export default class BasicLayout extends React.PureComponent<any, ParamType> {
+export default class BasicLayout extends NewConnBasicLayout {
+
     constructor(props: any) {
         super(props);
 
-
-        this.state = {
-            redisContext,
-            sidebarWidth: conf.getSidebarWidth(),
-            dlgSettings: false,
-            dlgConnection: false,
-            editServer: {name:"",db:[]},
-            serverList: [],
-            serverIndex: -1,
-
-        }
-
-        this.handleConnectionChange.bind(this)
-    }
-
-
-    handleEventUpdate(id: string, db: any, name: string, key: KeyInfo) {
-        const {serverList} = this.state
-        const server = serverList.filter(s => s.id === id)[0]
-        if (!server) {
-            console.log(id + ' 服务器不存在')
-            return;
-        }
-
-        const dB = server.db.filter(d => d.index == db)[0]
-        if (!dB) {
-            console.log(db + ' 不存在')
-            return;
-        }
-
-        const find = (key: string, ar: Array<KeyInfo>): (KeyInfo | undefined) => {
-            for (const k of ar) {
-                if (k.full == name)
-                    return k;
-                if (k?.children && k.children.length > 0) {
-                    const v = find(key, k.children)
-                    if (v) return v
-                }
-
-            }
-            return undefined
-        }
-
-        const ki = find(name, dB.children);
-        if (ki) {
-            ki.full = key.full
-            ki.name = key.full?.split(server.advancedSettings?.namespaceSeparator || ":").reverse()[0] || key.name
-            ki.size = key.size
-            ki.ttl = key.ttl
-            this.setState({serverList:[...serverList]})
-            console.log(server)
-        }
-
-        console.log(ki, key, id, db, name)
-    }
-    handleEventDelete(id: string, db: any, key: KeyInfo) {
-        const {serverList} = this.state
-        const server = serverList.filter(s => s.id === id)[0]
-        if (!server) {
-            console.log(id + ' 服务器不存在')
-            return;
-        }
-
-        const dB = server.db.filter(d => d.index == db)[0]
-        if (!dB) {
-            console.log(db + ' 不存在')
-            return;
-        }
-
-        const findDelete = (ar: Array<KeyInfo>) => {
-            for (let i = 0; i < ar.length; i++) {
-                const k = ar[i]
-                if (k.full == key.full) {
-                    ar.splice(i, 1)
-                    this.setState({serverList: [...serverList]})
-                    break;
-                }
-                if (k?.children && k.children.length > 0) {
-                    findDelete(k.children)
-                }
-            }
-        }
-
-        findDelete(dB.children);
-        console.log(key, id, db)
     }
 
 
     componentDidMount() {
+        super.componentDidMount()
 
-        win.eventBus["eventUpdate"] = this.handleEventUpdate.bind(this)
-        win.eventBus["eventDelete"] = this.handleEventDelete.bind(this)
+        eventBus.on("eventAddNewKey", this.handleAddNewKey.bind(this))
 
         clipboardJS(".clipboard-copy", intl.get("button.copy-tip"))
 
@@ -134,310 +41,50 @@ export default class BasicLayout extends React.PureComponent<any, ParamType> {
             }
         })
 
-
-        let isDragging = false, offsetX: number, initialWidth: number;
-        const draggable = document.getElementById('sidebar-draggable') as HTMLDivElement
-        const resizable = document.getElementById('sidebar-layout') as HTMLDivElement
-        const style = getComputedStyle(resizable),
-            minWidth = parseInt(style.minWidth),
-            maxWidth = parseInt(style.maxWidth) / 100 * document.body.offsetWidth
-
-        draggable.addEventListener('mousedown', function(e) {
-            isDragging = true;
-            offsetX = e.clientX - draggable.getBoundingClientRect().left;
-            initialWidth = parseInt(style.width) || resizable.offsetWidth; // 初始宽度
-            document.body.style.cursor = 'ew-resize';
-            draggable.classList.add(styles.active)
-        });
-        document.addEventListener('mousemove', function(e) {
-            if (isDragging) {
-                let x = e.clientX - offsetX;
-                let widthChange = x - initialWidth + initialWidth; // 计算宽度变化量
-
-                if (widthChange >= maxWidth) {
-                    widthChange = x = maxWidth
-                } else if (widthChange <= minWidth) {
-                    widthChange = x = minWidth
-                }
-                resizable.style.width = widthChange + 'px'; // 更新宽度
-                conf.setSidebarWidth(widthChange + 'px')
-            }
-        });
-        document.addEventListener('mouseup', function(e) {
-            e.preventDefault(), e.stopPropagation()
-            if (isDragging) document.body.removeAttribute("style")
-            isDragging = false;
-            draggable.classList.remove(styles.active)
-        });
-
-
-    }
-
-    componentWillUnmount() {
-
-    }
-
-    componentDidUpdate(prevProps: Readonly<any>, prevState: Readonly<ParamType>, snapshot?: any) { }
-
-
-    handleTheme(theme: any, evt: any) {
-        const e = evt.currentTarget.parentNode as HTMLDivElement
-        e.role = theme
-        localTheme.set(theme)
-    }
-    handleLocale(evt: any) {
-        const e = evt.currentTarget as HTMLSelectElement, ctx = this.state.redisContext
-
-        intl.setLocale(ctx.lang = e.value)
-        this.setState({redisContext: {...ctx}})
-    }
-    async handleFullScreen(e: any) {
-        if (document.fullscreenElement) {
-            document.exitFullscreen();
-        } else {
-            document.body.requestFullscreen.call(document.body);
-        }
+        dragByWidth("sidebar-draggable", "sidebar-layout", styles.active)
 
     }
 
 
-    handleSettings(e: any) {
-        this.setState({dlgSettings: true})
-    }
-    handleSettingsChange(evt: any) {
-        const e = evt.currentTarget as HTMLSelectElement, ctx = this.state.redisContext as any
-        const val = e.value, name = e.name
 
-        ctx[name] = val
-        this.setState({redisContext: {...ctx}})
-
-        if (name.startsWith("ui")) {
-            const D = document.body.style
-            if (name.endsWith("Size")) D.fontSize = val
-            if (name.endsWith("Family")) D.fontFamily = val
-        }
-        if (name.startsWith("editor")) {
-            const D = (document.getElementById("main-layout") as HTMLDivElement).style
-            if (name.endsWith("Size")) D.fontSize = val
-            if (name.endsWith("Family")) D.fontFamily = val
-        }
+    handleAddNewKey(group: string) {
 
     }
-
-
-    handleNewConnection() {
-        this.setState({dlgConnection: true})
-    }
-    handleAuthenticationType(evt: any) {
-        const e = evt.currentTarget, val = e.value
-        const el = document.getElementById(val) as HTMLDivElement
-
-        if (val.endsWith("password")) {
-            el.previousElementSibling?.setAttribute("aria-hidden", "true")
-        } else {
-            el.nextElementSibling?.setAttribute("aria-hidden", "true")
-        }
-        el.removeAttribute("aria-hidden")
-    }
-    handleSecurityTunnel(evt: any) {
-        const e = evt.currentTarget, val = e.value
-        const el = document.getElementById(val) as HTMLDivElement
-        const { editServer } = this.state
-
-        if (!el.hasAttribute("aria-hidden")) {
-            el.setAttribute("aria-hidden", "true")
-            e.checked = false
-            if (editServer.security) {
-                editServer.security.type = undefined
-                editServer.security.tunnel = undefined
-                editServer.security.tls = undefined
-                this.setState({editServer: {...editServer}})
-            }
-            return
-        }
-
-        if (val.endsWith("tunnel")) {
-            this.handleConnectionChange("security.type","tunnel")
-            el.previousElementSibling?.setAttribute("aria-hidden", "true")
-        } else {
-            this.handleConnectionChange("security.type","tls")
-            el.nextElementSibling?.setAttribute("aria-hidden", "true")
-        }
-
-        el.removeAttribute("aria-hidden")
-    }
-    handleConnectionSettings(index: number, evt: any) {
-        const e = evt.currentTarget as HTMLSpanElement, p = (e.parentNode as HTMLDivElement).nextElementSibling as HTMLDivElement;
-
-        p.childNodes.forEach((node, i) => {
-            const div = node as HTMLDivElement
-            if (index === i) {
-                div.removeAttribute("aria-hidden")
-            } else {
-                div.setAttribute("aria-hidden", "true")
-            }
-        })
-
-        if (index === 0) {
-            e.nextElementSibling?.classList.remove(styles.active)
-        } else {
-            e.previousElementSibling?.classList.remove(styles.active)
-        }
-        e.classList.add(styles.active)
-
-    }
-    handleTestConnection(evt: any) {
-        const e = evt.currentTarget as HTMLButtonElement
-        const { editServer } = this.state
-
-        e.disabled = true, e.role = 'icon-loading'
-        APIs.serverTest(editServer).then(model => {
-            console.log(model)
-
-            if (model.isSuccess()) {
-                const {state, version} = model.data
-                if (state) {
-                    const msg = intl.get("connection.error.success")
-                    alert(msg + version)
-                } else {
-                    alert(intl.get("connection.error.fail"))
-                }
-            } else {
-                toast(model.message)
-            }
-
-        }).finally(() => {
-            e.disabled = false, e.role = ''
-        })
-
-    }
-    handleSaveConnection(evt: any) {
-        const e = evt.currentTarget as HTMLButtonElement
-        const { editServer, serverList } = this.state
-
-        e.disabled = true, e.role = 'icon-loading'
-        APIs.serverSave(editServer).then(model => {
-            const {data} = model
-
-            console.log(model)
-
-            if (model.isSuccess()) {
-                editServer.id = data
-                serverList.unshift(editServer)
-                this.setState({serverList: [...serverList], dlgConnection: false})
-            } else {
-                alert(model.message)
-            }
-
-        }).catch((ex: any) => {
-            console.log(ex)
-        }).finally(() => {
-            e.disabled = false, e.role = ''
-        })
-    }
-    handleConnectionChange(field: string, value: any) {
-        const server = this.state.editServer as any;
-        const fs = field.split(".");
-
-        if (fs.length > 1) {
-            let d = server
-            for (let i = 0; i < fs.length - 1; i++) {
-                const f = fs[i]
-                if (f in d) {
-                    d = d[f]
-                    continue
-                }
-
-                d = d[f] = {}
-            }
-            d = d[fs[fs.length - 1]] = value
-        } else {
-            server[field] = value
-        }
-
-        console.log(server, field, value)
-    }
-    handleSelectFile(e: HTMLInputElement) {
-        const T = this
-        if (e && e.files) {
-            const names = e.name.split(","), filename = e.files[0].name
-            const reader = new FileReader()
-            reader.onload = e => {
-                const val = e?.target?.result
-                T.handleConnectionChange(names[0], val)
-                T.handleConnectionChange(names[1], filename)
-            }
-            reader.readAsText(e.files[0])
-        }
-    }
-
-
     handleClickServer(server: Server) {
-        const {serverList} = this.state, T = this
-        const i = serverList?.findIndex(s => s.id === server.id)
-        this.setState({serverIndex: i})
-
         if (server?.state == 'open' || server.state == 'connection') return;
 
-        server = serverList[i]
-        server.state = 'connection'
-        T.setState({serverList: [...serverList]})
+        if (server.id)
+            this.handleReloadConnection(server.id)
 
-        const source = APIs.db(server.id)
-        if (source) {
-            source.onopen = e => {
-                server.state = 'open'
-                server.expand = true
-                T.setState({serverList: [...serverList]})
-            };
-            source.on("redis-db", data => {
-                server.db = [...data]
-                T.setState({serverList: [...serverList]})
-            });
-        }
-
+        this.setState({selectServerId: server.id, selectDatabase: undefined, selectKey: undefined})
     }
-    handleClickDb(db: DbInfo) {
-        console.log(db, this.state)
+    handleClickDb(serverId: string, db: DbInfo) {
         if (db.state == "query" || db.state == "open")
             return;
 
-        const {serverList, serverIndex} = this.state, T = this
-        const server = serverList[serverIndex]
-        const dbs = server.db[db.index]
+        this.setState({
+            selectServerId: serverId,
+            selectDatabase: db.index,
+            selectKey: undefined
+        })
 
-        dbs.state = 'query'
-        T.setState({serverList: [...serverList]})
-
-        const source = APIs.keyspace(server.id, db.index)
-        if (source) {
-            source.onopen = e => {
-                dbs.expand = true
-                T.setState({serverList: [...serverList]})
-            }
-            source.on("keyspace", data => {
-                dbs.children = [...data.children]
-                T.setState({serverList: [...serverList]})
-            })
-            source.on("close", e => {
-                dbs.state = "open"
-                T.setState({serverList: [...serverList]})
-            })
-        }
+        this.handleReloadDatabase()
     }
-    handleClickKey(db:DbInfo, key: KeyInfo) {
-        const {serverList, serverIndex} = this.state
-        const server = serverList[serverIndex]
-
+    handleClickKey(serverId: string, db:DbInfo, key: KeyInfo) {
         // /info/:id/:db/:type/:name
-        history.push(["", "info", server.id, db.index, key.type, key.full as string].join("/"))
+        this.setState({
+            selectServerId: serverId,
+            selectDatabase: db.index,
+            selectKey: key.full
+        })
+        history.push(["", "info", serverId, db.index, key.type, key.full as string].join("/"))
     }
 
 
 
     render() {
         const {children} = this.props,
-            {redisContext, dlgSettings, dlgConnection, editServer, serverList, sidebarWidth} = this.state,
+            {redisContext, dlgSettings, dlgConnection, dlgNewKey, editServer, serverList, sidebarWidth} = this.state,
             theme = localTheme.theme,
             sidebarStyle: any = {}
 
@@ -457,15 +104,15 @@ export default class BasicLayout extends React.PureComponent<any, ParamType> {
                         <span className="blank"></span>
 
                         <div className={classNames(styles.buttonGroups, styles.social)}>
-                            <button>
+                            <button onClick={e => window.open('https://github.com/epldlnwynn/redis-web-module/issues')}>
                                 <Icon type="icon-debug"></Icon>
                             </button>
-                            <button>
+                            <button onClick={e => window.open('https://github.com/epldlnwynn/redis-web-module')}>
                                 <Icon type="icon-github"></Icon>
                             </button>
-                            <button>
-                                <Icon type="icon-twitter"></Icon>
-                            </button>
+                            {/*<button>*/}
+                            {/*    <Icon type="icon-twitter"></Icon>*/}
+                            {/*</button>*/}
                         </div>
 
                         <div className={styles.buttonGroups}>
@@ -496,6 +143,7 @@ export default class BasicLayout extends React.PureComponent<any, ParamType> {
                 <div className="main" id="main-layout">
                     <div className="main-wrap">{children}</div>
                 </div>
+
             </RedisContext.Provider>
 
             <Dialog visible={dlgSettings}
@@ -612,7 +260,7 @@ export default class BasicLayout extends React.PureComponent<any, ParamType> {
             <Dialog visible={dlgConnection}
                     title={intl.get(editServer?.name ? "connection.title-new" : "connection.title")}
                     className={styles.dialogNewConnection}
-                    onClose={e => this.setState({editServer:{name:'',db:[]},dlgConnection:false})}
+                    onClose={e => this.setState({editServer:{...DEFAULT_SERVER},dlgConnection:false})}
                     cancelable noScroll>
 
                 <div>
@@ -863,6 +511,16 @@ export default class BasicLayout extends React.PureComponent<any, ParamType> {
                     </div>
                 </div>
 
+            </Dialog>
+
+
+            <Dialog visible={dlgNewKey}
+                    title={"Add New Key to 43.134.16.158:db0"}
+                    className={styles.dialogAddKey}
+                    cancelable noScroll>
+                <div>
+
+                </div>
             </Dialog>
 
         </>)

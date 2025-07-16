@@ -1,6 +1,7 @@
 import React, {FC} from "react";
 import Icon from "@/components/icon";
 import classNames from "classnames";
+import {MenuDb, MenuGroup, MenuInfo, MenuServer} from "@/components/redis-menu";
 
 
 
@@ -10,23 +11,53 @@ interface Props {
 
     expandAll?: boolean;
 
-    clickKey?: (db: DbInfo, key: KeyInfo) => void;
-    clickDb?: (db: DbInfo) => void;
-    clickServer?: (server: RedisInfo) => void;
+    clickKey?: (serverId:string, db: DbInfo, key: KeyInfo) => void;
+    clickDb?: (serverId:string, db: DbInfo) => void;
+    clickServer?: (server: any) => void;
 
 }
 
 
+const redisToUrl = (server: Server) => {
+    const url = new URL("redis://")
+    if (server.host) url.host = server.host;
+    if (server.username) url.username = server.username;
+    if (server.password) url.password = server.password;
 
-const handleClickNode = (evt: any, data: any, props: Props) => {
+    url.port = (server.port || 6379).toString()
+
+    return url.toString()
+}
+
+
+let prevNode: any = null
+const handleClickNode = (evt: any) => {
     const e = evt.currentTarget as HTMLDivElement,
-        next = e.nextElementSibling as HTMLDivElement,
-        svg = e.firstElementChild
+        node = e.parentNode as HTMLDivElement,
+        next = node.nextElementSibling as HTMLDivElement,
+        svg = e.firstElementChild,
+        active = node.classList.contains("active")
+
+    prevNode?.menu?.remove()
+    prevNode?.classList.remove("active")
+    node.classList.add("active")
+
+    prevNode = node
+    if (node.role === "server")
+        prevNode.menu = MenuServer(node)
+    if (node.role === "db")
+        prevNode.menu = MenuDb(node)
+    if (node.role === "group")
+        prevNode.menu = MenuGroup(node)
+    if (node.role === "info")
+        prevNode.menu = MenuInfo(node)
 
     if (!next) return
 
     const hidden = next.getAttribute("aria-hidden") || "false"
-    if (hidden === "true") {
+    if (hidden == "false" && !active) {
+
+    } else if (hidden === "true") {
         next.setAttribute("aria-hidden", "false")
         svg?.classList.add("down")
     } else {
@@ -35,71 +66,82 @@ const handleClickNode = (evt: any, data: any, props: Props) => {
     }
 
 }
-const handleClickDb = async (evt: any, db: DbInfo, props: Props) => {
-    handleClickNode(evt, db, props)
+const handleClickKey = async (evt: any, serverId:string, db: DbInfo, key:KeyInfo, props: Props) => {
+    handleClickNode(evt)
 
-    props.clickDb && await props.clickDb(db)
+    props.clickKey && props.clickKey(serverId, db, key)
+}
+const handleClickDb = async (evt: any, serverId: string, db: DbInfo, props: Props) => {
+    handleClickNode(evt)
+
+    props.clickDb && await props.clickDb(serverId, db)
 
 }
 const handleClickServer = async (evt: any, server: RedisInfo, props: Props) => {
-    handleClickNode(evt, server, props)
+    handleClickNode(evt)
 
     props.clickServer && await props.clickServer(server)
 
 }
 
-const keyList = (p: Props, db: DbInfo, keys: Array<KeyInfo>, isDb: boolean = false) => {
+const keyList = (p: Props, serverId: string, db: DbInfo, keys: Array<KeyInfo>, isDb: boolean = false) => {
     if (!keys || keys.length == 0)
         return null
-
 
     return <div className="tree" aria-hidden={isDb ? (db.expand ? false : !p.expandAll) : !p.expandAll}>
         {keys.map((key: KeyInfo) => {
             return <div key={key.full || key.name}>
-                {("type" in key) && <div className="info" id={key.full} onClick={e => p.clickKey && p.clickKey(db, key)}>
-                    <p role={key.type}>
-                        <label>{key.type}</label>
-                    </p>
-                    <span>{key.name}</span>
+                {("type" in key) && <div role="info" className="info" id={key.full}>
+                    <div onClick={e => handleClickKey(e, serverId, db, key, p)}>
+                        <p role={key.type}>
+                            <label>{key.type}</label>
+                        </p>
+                        <span>{key.name}</span>
+                    </div>
                 </div>}
 
-                {!("type" in key) && <div className="node" onClick={e => handleClickNode(e, key, p)}>
-                        <Icon type="icon-arrow-right-fill" className={classNames({"down": p.expandAll},"arrow")}></Icon>
-                        <Icon type={`icon-folder-${key.expand ? "" : (p.expandAll ? "open-" : "")}fill`}></Icon>
-                        <span>{key.name + (key.count > 0 ? ` (${key.count})` : '')}</span>
+                {!("type" in key) && <div role="group" data-group={key.full || key.name} className="node">
+                        <div onClick={e => handleClickNode(e)}>
+                            <Icon type="icon-arrow-right-fill" className={classNames({"down": p.expandAll},"arrow")}></Icon>
+                            <Icon type={`icon-folder-${key.expand ? "" : (p.expandAll ? "open-" : "")}fill`}></Icon>
+                            <span>{key.name + (key.count > 0 ? ` (${key.count})` : '')}</span>
+                        </div>
                     </div>
                 }
 
-                {keyList(p, db, key.children || [])}
+                {keyList(p, serverId, db, key.children || [])}
             </div>
         })}
     </div>
-}
+};
+
 const dbList: FC<Props> = (p, server) => {
     if (!server.db || server.db.length == 0)
         return null
 
     return <div className="tree" aria-hidden={server.expand ? false : !p.expandAll}>
         {server.db.map((db: DbInfo) => {
-            return <div key={'db' + db.index} id={'db' + db.index}>
-                <div className="node" onClick={e => handleClickDb(e, db, p)}>
-                    {db.state == 'query' ?
-                        <Icon type="icon-loading-fill"></Icon>
-                        :
-                        <Icon type="icon-arrow-right-fill" className={classNames({
-                            "down": db.expand || p.expandAll,
-                            "visibility": db.count == 0
-                        },"arrow")}></Icon>
-                    }
+            return <div key={'db' + db.index}>
+                <div className="node" role="db">
+                    <div onClick={e => handleClickDb(e, server.id, db, p)}>
+                        {db.state == 'query' ?
+                            <Icon type="icon-loading-fill"></Icon>
+                            :
+                            <Icon type="icon-arrow-right-fill" className={classNames({
+                                "down": db.expand || p.expandAll,
+                                "visibility": db.count == 0
+                            },"arrow")}></Icon>
+                        }
 
-                    <Icon type="icon-data-table"></Icon>
-                    <span>db{db.index + (db.count > 0 ? ` (${db.count})` : '')}</span>
+                        <Icon type="icon-data-table"></Icon>
+                        <span>db{db.index + (db.count > 0 ? ` (${db.count})` : '')}</span>
+                    </div>
                 </div>
-                {keyList(p, db, db.children, true)}
+                {keyList(p, server.id, db, db.children, true)}
             </div>
         })}
     </div>
-}
+};
 
 const RedisTree : FC<Props> = (p) => {
 
@@ -110,17 +152,19 @@ const RedisTree : FC<Props> = (p) => {
                 style['--sidebar-icon-color'] = server?.appearance?.iconColor
 
             return <div className="server" key={server.id || server.name} id={server.id} style={style}>
-                <div className="node" onClick={e => handleClickServer(e, server, p)}>
-                    {server.state === "connection" ?
-                        <Icon type="icon-loading-fill"></Icon>
-                        :
-                        <Icon type="icon-arrow-right-fill" className={classNames({
-                            "down": server.expand || p.expandAll,
-                            "visibility": server.state != 'open'
-                        },"arrow")}></Icon>
-                    }
-                    <Icon type="icon-database"></Icon>
-                    <span>{server.name}</span>
+                <div className="node" role="server" data-url={redisToUrl(server)}>
+                    <div onClick={e => handleClickServer(e, server, p)}>
+                        {server.state === "connection" ?
+                            <Icon type="icon-loading-fill"></Icon>
+                            :
+                            <Icon type="icon-arrow-right-fill" className={classNames({
+                                "down": server.expand || p.expandAll,
+                                "visibility": server.state != 'open'
+                            },"arrow")}></Icon>
+                        }
+                        <Icon type="icon-database"></Icon>
+                        <span>{server.name}</span>
+                    </div>
                 </div>
                 {dbList(p, server)}
             </div>

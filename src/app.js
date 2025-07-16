@@ -43,6 +43,37 @@ window.localTheme.init()
         W.Date.HOURS = 60 * W.Date.MINUTES,
         W.Date.DAYS = 24 * W.Date.HOURS;
 
+    Element.prototype.parents=function(selector){
+        // #id .class
+        const c = selector.charAt(0)
+
+        const findId = (id,n) => {
+            if (!n) return null
+            if (n.id == id) return n
+            return findId(id,n.parentNode)
+        }
+
+        if (c === "#")
+            return findId(selector.substring(1),this)
+
+        const findClass = (cls,n) => {
+            if (!n || !n.classList) return null
+            if (n.classList.contains(cls))
+                return n
+            return findClass(cls, n.parentNode)
+        }
+        if (c === ".")
+            return findClass(selector.substring(1),this)
+
+
+        const findAttr = (k,v,n) => {
+            if (!n) return null
+            if (n.getAttribute(k) == v) return n
+            return findAttr(k,v,n.parentNode)
+        }
+        const [all, key, value] = selector.replace("'","").replace('"',"").match(/\[([\w\-]+)=(\w+)\]/)
+        return findAttr(key,value, this)
+    };
     String.prototype.ellipsis = function(len, separator, textOverflow) {
         const t = this, symbols = separator || '...';
         if (textOverflow == 'left') {
@@ -271,9 +302,6 @@ window.localTheme.init()
                 }
             }
         }
-    };
-    W.comingSoon = function () {
-        toast("Coming soon")
     };
     W.location.query = function(a, df = null) {
         const c = W.location.search.substring(1),b = c.match(new RegExp("(^|&)"+ a +"=([^&]*)(&|$)"));

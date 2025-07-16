@@ -6639,6 +6639,11 @@ lint-staged@^10.0.7:
     string-argv "0.3.1"
     stringify-object "^3.3.0"
 
+listen-events@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/listen-events/-/listen-events-1.0.1.tgz"
+  integrity sha512-txUYMoxWl8CItnuVD9j/wKNR6bnq7NF3cBaM6Op59Q7/+noyrgfbtw/BlOuRfsn7IS4bEz7P+f2w65cPeq8PDw==
+
 listr2@^3.2.2:
   version "3.14.0"
   resolved "https://registry.npmjs.org/listr2/-/listr2-3.14.0.tgz"

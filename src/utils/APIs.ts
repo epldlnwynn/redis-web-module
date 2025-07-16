@@ -120,13 +120,13 @@ const APIs = {
 
     sset: {
         add(id:string, db:number, key:string, value:any){
-            return APIs.sendCmd(id,db,"add", "sset",{key,value})
+            return APIs.sendCmd(id,db,"add", "set",{key,value})
         },
         set(id:string, db:number, key:string, value:any, oldValue: any){
-            return APIs.sendCmd(id,db,"set", "sset",{key,value,oldValue})
+            return APIs.sendCmd(id,db,"set", "set",{key,value,oldValue})
         },
         del(id:string, db:number, key:string, value:any){
-            return APIs.sendCmd(id,db,"del", "sset",{key,value})
+            return APIs.sendCmd(id,db,"del", "set",{key,value})
         },
     },
 

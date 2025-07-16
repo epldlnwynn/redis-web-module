@@ -1,9 +1,21 @@
 import ClipboardJS from "clipboard";
+import conf from "@/utils/conf";
+// @ts-ignore
+import listen from 'good-listener';
+
+// @ts-ignore
+ClipboardJS.prototype.listenClick = function(trigger) {
+    const T = this as any
+    T.listener = listen(trigger, 'click', (e: any) => {
+        e.stopPropagation()
+        T.onClick(e)
+    });
+}
 
 
 export const clipboardJS = function(selector: string, message = "Copied!") {
     const clipboard = new ClipboardJS(selector)
-    clipboard.on("success", e => {
+    clipboard.on("success", function(e) {
         toast(message);
         e.clearSelection()
     });
@@ -83,6 +95,42 @@ export function downloadFile(content: any, filename: string, mimeType: string = 
     URL.revokeObjectURL(url);
 }
 
+export function dragByWidth(elDraggable: string, elResizable: string, active: string) {
+    let isDragging = false, offsetX: number, initialWidth: number;
+    const draggable = document.getElementById(elDraggable) as HTMLDivElement
+    const resizable = document.getElementById(elResizable) as HTMLDivElement
+    const style = getComputedStyle(resizable),
+        minWidth = parseInt(style.minWidth),
+        maxWidth = parseInt(style.maxWidth) / 100 * document.body.offsetWidth
+
+    draggable.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        offsetX = e.clientX - draggable.getBoundingClientRect().left;
+        initialWidth = parseInt(style.width) || resizable.offsetWidth; // 初始宽度
+        document.body.style.cursor = 'ew-resize';
+        draggable.classList.add(active)
+    });
+    document.addEventListener('mousemove', function(e) {
+        if (isDragging) {
+            let x = e.clientX - offsetX;
+            let widthChange = x - initialWidth + initialWidth; // 计算宽度变化量
+
+            if (widthChange >= maxWidth) {
+                widthChange = x = maxWidth
+            } else if (widthChange <= minWidth) {
+                widthChange = x = minWidth
+            }
+            resizable.style.width = widthChange + 'px'; // 更新宽度
+            conf.setSidebarWidth(widthChange + 'px')
+        }
+    });
+    document.addEventListener('mouseup', function(e) {
+        e.preventDefault(), e.stopPropagation()
+        if (isDragging) document.body.removeAttribute("style")
+        isDragging = false;
+        draggable.classList.remove(active)
+    });
+}
 
 export default {
     uuid,

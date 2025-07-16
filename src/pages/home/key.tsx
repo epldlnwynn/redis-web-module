@@ -4,6 +4,7 @@ import APIs from "@/utils/APIs";
 import {useHistory, useParams} from "umi";
 import RedisEditor from "@/components/redis-editor";
 import intl from "@/utils/intl";
+import eventBus from "listen-events";
 
 
 const win = window as any
@@ -29,7 +30,7 @@ export default () => {
     }
     const loadKeyData = () => {
         const source = APIs.values(id,db,type,full)
-        if (!source) return;
+        if (!source) return undefined;
 
         source.on("info", data => {
             key.ttl = data.ttl
@@ -56,6 +57,7 @@ export default () => {
             setKey({...key})
         })
 
+        return source
     }
     const handleReloadValue = (e: HTMLButtonElement) => {
         e.disabled = true
@@ -78,12 +80,39 @@ export default () => {
         e.disabled = true
         APIs.delete(id, db, name).then(model => {
             if (model.isSuccess()) {
-                win.eventBus && win.eventBus.eventDelete(id, db, key)
+                eventBus.emit("eventDelete", id, db, key)
                 toast(intl.get("editor.delete.success"))
                 history.push('/')
             }
         }).finally(() => {
             e.disabled  = false
+        })
+    }
+    const handleDeleteItem = (e: HTMLButtonElement) => {
+        let fun: any = null, index = key.itemIndex || -1
+        if (index == undefined || index == -1)
+            return
+
+        e.disabled = true
+        if (type === "list")
+            fun = APIs.list.del(id, db, full, key.itemIndex)
+
+        if (type === "hash" && key.field)
+            fun = APIs.hash.del(id, db, full, key.field)
+
+        if (type === "zset" && key.field)
+            fun = APIs.zset.del(id,db, full, key.content)
+
+        if (type === "set")
+            fun = APIs.sset.del(id, db, full, key.content)
+
+        fun?.finally(() => {
+            key.children?.splice(index, 1)
+            key.field = undefined
+            key.content = undefined
+            key.itemIndex = undefined
+            setKey({...key})
+            e.disabled = false
         })
     }
     const handleSaveItem = (field: string, value: string, e: HTMLButtonElement) => {
@@ -146,7 +175,7 @@ export default () => {
         APIs.rename(id, db, oldKey, newKey).then(model => {
             if (model.isSuccess()) {
                 key.full = newKey
-                win.eventBus.eventUpdate(id,db, oldKey, key)
+                eventBus.emit("eventUpdate", id,db, oldKey, key)
                 history.push(`/info/${id}/${db}/${type}/${newKey}`)
             }
         }).finally(() => {
@@ -180,13 +209,16 @@ export default () => {
 
     useEffect(() => {
         window.clearInterval(timeoutId)
-        loadKeyData()
+        const source = loadKeyData()
 
+        return () => source?.close()
     }, [id, db, type, full])
+
 
     return <div className={styles.keyWrap}>
 
         <RedisEditor data={key}
+                     handleDeleteItem={handleDeleteItem}
                      handleSelectedItem={handleSelectedItem}
                      handleSaveTtl={handleSetTTL}
                      handleDelete={handleDelete}

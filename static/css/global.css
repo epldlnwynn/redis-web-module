@@ -1,4 +1,5 @@
 @import url('animate.min.css');
+@import url('primer.min.css');
 
 [theme-prefers-color='dark']{
     --body-background-color: #2a2a2a;
@@ -103,6 +104,7 @@ td,th{vertical-align:middle}
 td,th,span,p,i,label,div,i,em,img,span,label{cursor:inherit}
 pre{white-space:pre-line!important}
 textarea{word-break:break-all;height:auto;resize:none}
+.tooltipped:after{font-size:12px !important;padding:5px 10px}
 
 button,input,textarea,select{
     vertical-align:middle;
@@ -297,8 +299,9 @@ button>[role='icon-loading']{width:0px;height:20px;margin-right:-8px;}
 
 .server-list{margin-right: -1px}
 .server-list .server{position:relative}
-.server-list .server>.node{position:-webkit-sticky;position:sticky;top:0px;min-height:40px;background-color:var(--surface-color);border-radius:0}
+.server-list .server>.node{position:-webkit-sticky;position:sticky;top:0px;background-color:var(--surface-color);border-radius:0}
 .server-list .server>.node{border-bottom:1px solid var(--light-border-color);z-index:100}
+.server-list .server>.node>div{min-height:40px}
 .server-list svg{width:20px;height:20px;padding:1px}
 .server-list [role='icon-loading-fill']{animation:1s linear 0s infinite normal none running loading-lamp;width:12px;height:8px!important;}
 .server-list .arrow{width:12px;height:12px;color:var(--text-color);opacity:0.5}
@@ -312,21 +315,28 @@ button>[role='icon-loading']{width:0px;height:20px;margin-right:-8px;}
     flex-direction: row;
     align-items: center;
 }
+.server-list .node>div,.server-list .info>div{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex: auto;
+}
 .server-list .node span{
     margin-left: 6px;
+    flex: auto;
 }
 .server-list .info{
     display: flex;
     align-items: center;
-    gap: 6px;
-
 }
+.server-list .info>div{gap: 6px;}
 .server-list .info, .server-list .node{
     cursor: pointer;
     min-height: 28px;
     padding-left: 8px;
     margin-left: -8px;
     border-radius: var(--border-radius);
+    gap: 6px;
 }
 .server-list .info:hover, .server-list .node:hover{
     background-color: var(--body-background-color);
@@ -336,6 +346,7 @@ button>[role='icon-loading']{width:0px;height:20px;margin-right:-8px;}
     overflow:hidden;
     text-overflow:ellipsis;
     content:"...";
+    flex: auto;
 }
 .server-list .info p{
     min-width: 65px;
@@ -350,6 +361,10 @@ button>[role='icon-loading']{width:0px;height:20px;margin-right:-8px;}
     display: flex;
     justify-content: center;
 }
+.server-list .active{
+    background-color: rgba(var(--primary-color-rgb),.14) !important;
+}
+
 [role='string'] label{background-color: #87c087}
 [role='hash'] label{background-color: #a4bff3}
 [role='list'] label{background-color: #dbd490}

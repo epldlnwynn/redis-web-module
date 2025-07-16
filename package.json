@@ -33,6 +33,8 @@
         "clipboard": "^2.0.11",
         "crypto-browserify": "^3.12.0",
         "crypto-js": "^4.1.1",
+        "good-listener": "^1.2.2",
+        "listen-events": "^1.0.1",
         "react": "16.13.1",
         "react-dom": "16.13.1",
         "react-intl-universal": "^2.9.1",

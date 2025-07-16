@@ -41,14 +41,12 @@ interface KeyInfo {
     content?: any;
     children?: Array<KeyInfo | any>;
 }
-interface ItemValue {
 
-}
 
 interface Server extends RedisInfo {
     id?: string;
-    host?: string;
-    port?: number;
+    host: string;
+    port: number;
     password?: string;
     username?: string;
 
@@ -72,12 +70,12 @@ interface Server extends RedisInfo {
         }
     };
 
-    advancedSettings?: {
+    advancedSettings: {
         defaultFilter: string;
         namespaceSeparator: string;
-        scanUpperLimit?: number;
-        connectionTimeout: number;
-        executionTimeout: number;
+        scanUpperLimit: number;
+        connectionTimeout?: number;
+        executionTimeout?: number;
     };
 
     appearance?: {
@@ -132,6 +130,9 @@ interface EventSource {
     off(name: string): this;
 }
 
+interface Element {
+    parents(selector: string): Element;
+}
 
 
 declare var $: (selector: string) => any,
