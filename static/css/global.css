@@ -320,6 +320,8 @@ button>[role='icon-loading']{width:0px;height:20px;margin-right:-8px;}
     flex-direction: row;
     align-items: center;
     flex: auto;
+    cursor: pointer;
+    min-height:28px;
 }
 .server-list .node span{
     margin-left: 6px;
@@ -329,10 +331,8 @@ button>[role='icon-loading']{width:0px;height:20px;margin-right:-8px;}
     display: flex;
     align-items: center;
 }
-.server-list .info>div{gap: 6px;}
+.server-list .info>div{gap:6px;}
 .server-list .info, .server-list .node{
-    cursor: pointer;
-    min-height: 28px;
     padding-left: 8px;
     margin-left: -8px;
     border-radius: var(--border-radius);

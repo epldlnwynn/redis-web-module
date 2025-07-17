@@ -17,13 +17,14 @@ import {NewConnBasicLayout} from "@/handles/NewConnBasicLayout";
 import eventBus from "listen-events";
 
 
-const win = window as any
-win.eventBus = {}
+
+let addKeySettings: any = {type:"string"}
 export default class BasicLayout extends NewConnBasicLayout {
 
     constructor(props: any) {
         super(props);
 
+        this.handleAddKeyChange.bind(this)
     }
 
 
@@ -48,15 +49,90 @@ export default class BasicLayout extends NewConnBasicLayout {
 
 
     handleAddNewKey(group: string) {
+        const {selectServerId, selectDatabase} = this.state
+        console.log(selectServerId, selectDatabase, group)
+
+        addKeySettings = {name: group || "", type:"string"}
+        this.setState({dlgNewKey: true})
+    }
+    handleAddKeyChange(name: string, value: string) {
+        addKeySettings[name] = value
+    }
+    handleAddKeySelectType(e: HTMLSelectElement) {
+        this.handleAddKeyChange("type", e.value)
+        const div = e.parentElement?.parentElement?.nextElementSibling
+        if (div) div.role = e.value
+    }
+    handleAddKeySave(e: any) {
+        e.stopPropagation(), e.preventDefault()
+        const btn = e.currentTarget as HTMLButtonElement
+
+        const T = this
+        const {selectServerId, selectDatabase, serverList} = this.state
+        let fun: any = null, {type, name, field, value, score, member} = addKeySettings
+
+        btn.disabled = true, btn.role = 'icon-loading'
+
+        if (type === "string")
+            fun = APIs.string.set(selectServerId, selectDatabase, name, value)
+
+        if (type === "hash")
+            fun = APIs.hash.set(selectServerId, selectDatabase, name, field, value)
+
+        if (type === "zset")
+            fun = APIs.zset.add(selectServerId, selectDatabase, name, member, score)
+
+        if (type === "list")
+            fun = APIs.list.lPush(selectServerId, selectDatabase, name, value)
+
+        if (type === "set")
+            fun = APIs.sset.add(selectServerId, selectDatabase, name, value)
+
+        fun?.then((model: any) => {
+            if (model.isSuccess()) {
+                const server = T.findServerById(selectServerId);
+                const db = server.db[selectDatabase];
+                const ks = name.split(server?.advancedSettings?.namespaceSeparator || ":")
+
+                if (ks.length == 1) {
+                    db.count = db.count + 1;
+                    db.children.push({full: name, name, type, count: 0})
+                }
+
+                if (ks.length > 1) {
+                    let data: any = db,i = 0, key = '';
+                    for (; i < ks.length; i++) {
+                        key = ks[i]
+                        const ar = data.children.filter((p: any) => p.name === key)
+                        if (ar.length == 0) break;
+                        data = ar[0]
+                    }
+
+                    data.count = data.count + 1;
+                    data.children.push({full:name, name: key, type, count:0})
+                }
+
+                T.setServerList(serverList)
+                T.setState({dlgNewKey: false})
+                btn?.form?.reset()
+            }
+        }).finally(() => {
+            btn.disabled = false, btn.role = ''
+        })
 
     }
+
+
+
+
     handleClickServer(server: Server) {
         if (server?.state == 'open' || server.state == 'connection') return;
 
-        if (server.id)
-            this.handleReloadConnection(server.id)
+        if (!server.id) return;
 
-        this.setState({selectServerId: server.id, selectDatabase: undefined, selectKey: undefined})
+        this.handleReloadConnection(server.id)
+
+        this.setState({selectServerId: server.id, selectDatabase: -1, selectKey: undefined})
     }
     handleClickDb(serverId: string, db: DbInfo) {
         if (db.state == "query" || db.state == "open")
@@ -68,7 +144,7 @@ export default class BasicLayout extends NewConnBasicLayout {
             selectKey: undefined
         })
 
-        this.handleReloadDatabase()
+        this.handleReloadDatabase(serverId, db.index)
     }
     handleClickKey(serverId: string, db:DbInfo, key: KeyInfo) {
         // /info/:id/:db/:type/:name
@@ -84,9 +160,10 @@ export default class BasicLayout extends NewConnBasicLayout {
 
     render() {
         const {children} = this.props,
-            {redisContext, dlgSettings, dlgConnection, dlgNewKey, editServer, serverList, sidebarWidth} = this.state,
+            {redisContext, dlgSettings, dlgConnection, dlgNewKey, editServer, serverList, sidebarWidth, selectServerId, selectDatabase} = this.state,
             theme = localTheme.theme,
-            sidebarStyle: any = {}
+            sidebarStyle: any = {},
+            [server] = serverList.filter(s => s.id === selectServerId)
 
         if (sidebarWidth)
             sidebarStyle['width'] = sidebarWidth
@@ -515,12 +592,65 @@ export default class BasicLayout extends NewConnBasicLayout {
 
 
             <Dialog visible={dlgNewKey}
-                    title={"Add New Key to 43.134.16.158:db0"}
+                    title={`Add New Key to ${server?.host}:db${selectDatabase}`}
                     className={styles.dialogAddKey}
+                    onClose={e => this.setState({dlgNewKey: false})}
                     cancelable noScroll>
-                <div>
+                <form className={styles.keyWrap}>
+                    <div className={styles.listItem}>
+                        <div className={styles.keyName}>
+                            <label>Key Name<i>*</i></label>
+                            <input type="text"
+                                   autoFocus={true}
+                                   defaultValue={addKeySettings?.name}
+                                   onInput={e => this.handleAddKeyChange('name', e.currentTarget.value)}
+                                   autoComplete="off"
+                                   placeholder="Enter key name" name="key-name" />
+                        </div>
+                        <div className={styles.keyType}>
+                            <label>Key Type</label>
+                            <select name="key-type" onChange={e => this.handleAddKeySelectType(e.currentTarget)}>
+                                <option value="string">String</option>
+                                <option value="hash">Hash</option>
+                                <option value="list">List</option>
+                                <option value="set">Set</option>
+                                <option value="zset">Sorted Set</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div role="string" className={styles.keyValue}>
 
-                </div>
+                        <div className={styles.hash}>
+                            <input autoComplete="off" type="text" placeholder="Enter field name" name="field"
+                                   onInput={e => this.handleAddKeyChange('field', e.currentTarget.value)} />
+
+                            <textarea placeholder="Enter field value" name="value"
+                                      onInput={e => this.handleAddKeyChange('value', e.currentTarget.value)}></textarea>
+                        </div>
+
+                        <div className={styles.zset}>
+                            <input autoComplete="off" type="text" placeholder="Enter member" name="member"
+                                   onInput={e => this.handleAddKeyChange('member', e.currentTarget.value)} />
+
+                            <input autoComplete="off" type="text" placeholder="Enter score" name="score"
+                                      onInput={e => this.handleAddKeyChange('score', e.currentTarget.value)} />
+                        </div>
+
+                        <div className={styles.other}>
+                            <textarea placeholder="Enter key value" name="value"
+                                      onInput={e => this.handleAddKeyChange('value', e.currentTarget.value)}></textarea>
+                        </div>
+
+
+                    </div>
+
+                    <div className={styles.buttons}>
+                        <button type="submit" onClick={e => this.handleAddKeySave(e)}>
+                            <Icon type="icon-loading"></Icon>
+                            Add Key
+                        </button>
+                    </div>
+                </form>
             </Dialog>
 
         </>)

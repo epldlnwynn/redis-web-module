@@ -50,15 +50,16 @@ export class NewConnBasicLayout extends SettingBasicLayout {
         }
 
     }
-    handleReloadDatabase() {
+    handleReloadDatabase(serverId: string, database: number) {
         const {selectServerId, selectDatabase, serverList} = this.state
-        const server = this.findServerById(selectServerId || "")
-        const dbs = server.db[selectDatabase], T = this
+        const server = this.findServerById(serverId || selectServerId)
+
+        const dbs = server.db[database || selectDatabase], T = this
 
         dbs.state = 'query'
         this.setServerList(serverList)
 
-        const source = APIs.keyspace(server.id, selectDatabase)
+        const source = APIs.keyspace(server.id, dbs.index)
         if (source) {
             source.onopen = e => {
                 dbs.expand = true

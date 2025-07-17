@@ -57,10 +57,11 @@ export const MenuDb = (e:HTMLDivElement) => {
             <Icon type="icon-filter"></Icon>
         </button>
         <button className="tooltipped tooltipped-w" aria-label="Reload Keys in Database"
-                onClick={e => eventBus.emit("eventReloadDatabase", e.currentTarget)}>
+                onClick={e => eventBus.emit("eventReloadDatabase", null, null, e.currentTarget)}>
             <Icon type="icon-reload"></Icon>
         </button>
-        <button className="tooltipped tooltipped-w" aria-label="Add New Key">
+        <button className="tooltipped tooltipped-w" aria-label="Add New Key"
+                onClick={e => eventBus.emit("eventAddNewKey", null, e.currentTarget)}>
             <Icon type="icon-add"></Icon>
         </button>
     </>, div)

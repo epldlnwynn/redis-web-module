@@ -8,15 +8,20 @@ import eventBus from "listen-events";
 
 interface ParamType {
     redisContext: IRedisContext;
+
+
     dlgSettings: boolean;
     dlgConnection: boolean;
     dlgNewKey: boolean;
+
+
     editServer: Server;
     serverList: Array<Server>;
     sidebarWidth: string;
 
-    selectServerId?: string;
-    selectDatabase?: any;
+
+    selectServerId: string;
+    selectDatabase: number;
     selectKey?: string;
 }
 
@@ -34,6 +39,8 @@ export class HandleBasicLayout extends React.PureComponent<any, ParamType> {
             dlgNewKey: false,
             serverList: [],
             editServer: {...DEFAULT_SERVER},
+            selectServerId: '',
+            selectDatabase: -1,
         }
 
     }
