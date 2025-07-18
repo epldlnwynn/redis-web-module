@@ -45,7 +45,7 @@ export default defineConfig({
             routes: [
                 { path: "/", component: "@/pages/home/index" },
                 { path: "/index.html", component: "@/pages/home/index" },
-                { path: "/info/:id/:db/:type/:name", component: "@/pages/home/key" },
+                { path: "/info/:id/:db/:name", component: "@/pages/home/key" },
 
                 { path: "/*", redirect: "/index.html", },
             ],

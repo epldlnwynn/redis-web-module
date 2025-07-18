@@ -89,18 +89,17 @@ const keyList = (p: Props, serverId: string, db: DbInfo, keys: Array<KeyInfo>, i
         return null
 
     return <div className="tree" aria-hidden={isDb ? (db.expand ? false : !p.expandAll) : !p.expandAll}>
-        {keys.map((key: KeyInfo) => {
+        {keys.map((key: any) => {
             return <div key={key.full || key.name}>
-                {("type" in key) && <div role="info" className="info" id={key.full}>
-                    <div onClick={e => handleClickKey(e, serverId, db, key, p)}>
-                        <p role={key.type}>
-                            <label>{key.type}</label>
-                        </p>
-                        <span>{key.name}</span>
+                {("type" in key) ?
+                    <div role="info" className="info" id={key.full}>
+                        <div onClick={e => handleClickKey(e, serverId, db, key, p)}>
+                            <p role={key.type}>{key.type == "none" && <Icon type="icon-keys"></Icon>}</p>
+                            <span>{key.name}</span>
+                        </div>
                     </div>
-                </div>}
-
-                {!("type" in key) && <div role="group" data-group={key.full || key.name} className="node">
+                    :
+                    <div role="group" data-group={key.full || key.name} className="node">
                         <div onClick={e => handleClickNode(e)}>
                             <Icon type="icon-arrow-right-fill" className={classNames({"down": p.expandAll},"arrow")}></Icon>
                             <Icon type={`icon-folder-${key.expand ? "" : (p.expandAll ? "open-" : "")}fill`}></Icon>

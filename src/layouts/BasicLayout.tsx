@@ -32,6 +32,7 @@ export default class BasicLayout extends NewConnBasicLayout {
         super.componentDidMount()
 
         eventBus.on("eventAddNewKey", this.handleAddNewKey.bind(this))
+        eventBus.on("eventDeleteKey", this.handleDeleteKey.bind(this))
 
         clipboardJS(".clipboard-copy", intl.get("button.copy-tip"))
 
@@ -49,9 +50,6 @@ export default class BasicLayout extends NewConnBasicLayout {
 
 
     handleAddNewKey(group: string) {
-        const {selectServerId, selectDatabase} = this.state
-        console.log(selectServerId, selectDatabase, group)
-
         addKeySettings = {name: group || "", type:"string"}
         this.setState({dlgNewKey: true})
     }
@@ -68,7 +66,7 @@ export default class BasicLayout extends NewConnBasicLayout {
         const btn = e.currentTarget as HTMLButtonElement
 
         const T = this
-        const {selectServerId, selectDatabase, serverList} = this.state
+        const {selectServerId, selectDatabase} = window
         let fun: any = null, {type, name, field, value, score, member} = addKeySettings
 
         btn.disabled = true, btn.role = 'icon-loading'
@@ -91,8 +89,8 @@ export default class BasicLayout extends NewConnBasicLayout {
         fun?.then((model: any) => {
             if (model.isSuccess()) {
                 const server = T.findServerById(selectServerId);
-                const db = server.db[selectDatabase];
-                const ks = name.split(server?.advancedSettings?.namespaceSeparator || ":")
+                const db = server.db[selectDatabase], sep = server?.advancedSettings?.namespaceSeparator || ":"
+                const ks = name.split(sep)
 
                 if (ks.length == 1) {
                     db.count = db.count + 1;
@@ -100,19 +98,28 @@ export default class BasicLayout extends NewConnBasicLayout {
                 }
 
                 if (ks.length > 1) {
-                    let data: any = db,i = 0, key = '';
-                    for (; i < ks.length; i++) {
+                    let data: any = db, key = '';
+                    for (let i = 0; i < ks.length - 1; i++) {
                         key = ks[i]
                         const ar = data.children.filter((p: any) => p.name === key)
-                        if (ar.length == 0) break;
-                        data = ar[0]
+
+                        if (ar.length == 0) {
+                            data.children.push({full: ks.slice(0, i + 1).join(sep), name: key, count: 0, children:[]})
+                            data = data.children[data.children.length - 1]
+                        } else {
+                            data = ar[0]
+                        }
+                        console.log(key, i, ar)
                     }
 
+                    key = ks[ks.length - 1]
                     data.count = data.count + 1;
-                    data.children.push({full:name, name: key, type, count:0})
+                    data.children.push({full:name, name:key, type, count:0, children:[]})
+
+                    console.log(db)
                 }
 
-                T.setServerList(serverList)
+                T.updateServerList()
                 T.setState({dlgNewKey: false})
                 btn?.form?.reset()
             }
@@ -121,7 +128,20 @@ export default class BasicLayout extends NewConnBasicLayout {
         })
 
     }
+    handleDeleteKey(groupKey: string, e: HTMLButtonElement) {
+        const {selectServerId, selectDatabase} = window
 
+        e.disabled = true
+        APIs.delete(selectServerId, selectDatabase, groupKey, true).then(model => {
+            if (model.isSuccess()) {
+                this.deleteKey(groupKey)
+            } else {
+                toast(model.message)
+            }
+        }).finally(() => {
+            e.disabled = false
+        })
+    }
 
 
 
@@ -132,38 +152,36 @@ export default class BasicLayout extends NewConnBasicLayout {
 
         this.handleReloadConnection(server.id)
 
-        this.setState({selectServerId: server.id, selectDatabase: -1, selectKey: undefined})
+        window.selectServer = server;
+        window.selectServerId = server.id;
+        window.selectDatabase = -1;
     }
     handleClickDb(serverId: string, db: DbInfo) {
         if (db.state == "query" || db.state == "open")
             return;
 
-        this.setState({
-            selectServerId: serverId,
-            selectDatabase: db.index,
-            selectKey: undefined
-        })
+        window.selectServer = this.findServerById(serverId);
+        window.selectServerId = serverId;
+        window.selectDatabase = db.index;
 
         this.handleReloadDatabase(serverId, db.index)
     }
     handleClickKey(serverId: string, db:DbInfo, key: KeyInfo) {
-        // /info/:id/:db/:type/:name
-        this.setState({
-            selectServerId: serverId,
-            selectDatabase: db.index,
-            selectKey: key.full
-        })
-        history.push(["", "info", serverId, db.index, key.type, key.full as string].join("/"))
+        window.selectServer = this.findServerById(serverId);
+        window.selectServerId = serverId;
+        window.selectDatabase = db.index;
+
+        history.push(["", "info", serverId, db.index, key.full as string].join("/"))
     }
 
 
 
     render() {
         const {children} = this.props,
-            {redisContext, dlgSettings, dlgConnection, dlgNewKey, editServer, serverList, sidebarWidth, selectServerId, selectDatabase} = this.state,
+            {redisContext, dlgSettings, dlgConnection, dlgNewKey, editServer, serverList, sidebarWidth} = this.state,
+            {selectDatabase, selectServer} = window,
             theme = localTheme.theme,
-            sidebarStyle: any = {},
-            [server] = serverList.filter(s => s.id === selectServerId)
+            sidebarStyle: any = {}
 
         if (sidebarWidth)
             sidebarStyle['width'] = sidebarWidth
@@ -592,7 +610,7 @@ export default class BasicLayout extends NewConnBasicLayout {
 
 
             <Dialog visible={dlgNewKey}
-                    title={`Add New Key to ${server?.host}:db${selectDatabase}`}
+                    title={`Add New Key to ${selectServer?.host}:db${selectDatabase}`}
                     className={styles.dialogAddKey}
                     onClose={e => this.setState({dlgNewKey: false})}
                     cancelable noScroll>

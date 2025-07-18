@@ -6,18 +6,17 @@ import eventBus from "listen-events";
 
 
 
-const handleDeleteKey = (e: HTMLButtonElement) => {
-    if (!confirm("Do you really want to delete connection?")) return
+const handleDeleteKey = (group: string | undefined, e: HTMLButtonElement) => {
+    if (!confirm(`Do you really want to delete the ${group}* key?`)) return
 
+    if (group)
+        eventBus.emit("eventDeleteKey", group, e)
 }
 const handleDeleteServer = (e: HTMLButtonElement, id?: string) => {
     if (!confirm("Do you really want to delete connection?")) return
 
-    if (id) {
-        e.disabled = true
+    if (id)
         eventBus.emit("eventDeleteConnection", id, e)
-        e.disabled = false
-    }
 
 }
 
@@ -39,7 +38,8 @@ export const MenuServer = (e: HTMLDivElement) => {
         <button className="tooltipped tooltipped-w clipboard-copy" aria-label="Copy Redis Uri" data-clipboard-text={url}>
             <Icon type="icon-copy-link"></Icon>
         </button>
-        <button type="button" className="tooltipped tooltipped-w" aria-label="Delete Connection" onClick={e => handleDeleteServer(e.currentTarget, serverId)}>
+        <button type="button" className="tooltipped tooltipped-w" aria-label="Delete Connection"
+                onClick={e => handleDeleteServer(e.currentTarget, serverId)}>
             <Icon type="icon-delete"></Icon>
         </button>
     </>, div)
@@ -86,7 +86,7 @@ export const MenuGroup = (e:HTMLDivElement) => {
         <button className="tooltipped tooltipped-w clipboard-copy" data-clipboard-text={group+'*'} aria-label="Copy Namespace Pattern">
             <Icon type="icon-copy"></Icon>
         </button>
-        <button className="tooltipped tooltipped-w" aria-label="Delete Namespace" onClick={e => handleDeleteKey(e.currentTarget)}>
+        <button className="tooltipped tooltipped-w" aria-label="Delete Namespace" onClick={e => handleDeleteKey(group, e.currentTarget)}>
             <Icon type="icon-delete"></Icon>
         </button>
     </>, div)

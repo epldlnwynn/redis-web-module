@@ -20,9 +20,6 @@ interface ParamType {
     sidebarWidth: string;
 
 
-    selectServerId: string;
-    selectDatabase: number;
-    selectKey?: string;
 }
 
 
@@ -39,8 +36,6 @@ export class HandleBasicLayout extends React.PureComponent<any, ParamType> {
             dlgNewKey: false,
             serverList: [],
             editServer: {...DEFAULT_SERVER},
-            selectServerId: '',
-            selectDatabase: -1,
         }
 
     }
@@ -54,74 +49,20 @@ export class HandleBasicLayout extends React.PureComponent<any, ParamType> {
 
 
     handleEventUpdate(id: string, db: any, name: string, key: KeyInfo) {
-        const {serverList} = this.state
-        const server = serverList.filter(s => s.id === id)[0]
-        if (!server) {
-            console.log(id + ' 服务器不存在')
-            return;
-        }
-
-        const dB = server.db.filter(d => d.index == db)[0]
-        if (!dB) {
-            console.log(db + ' 不存在')
-            return;
-        }
-
-        const find = (key: string, ar: Array<KeyInfo>): (KeyInfo | undefined) => {
-            for (const k of ar) {
-                if (k.full == name)
-                    return k;
-                if (k?.children && k.children.length > 0) {
-                    const v = find(key, k.children)
-                    if (v) return v
-                }
-
-            }
-            return undefined
-        }
-
-        const ki = find(name, dB.children);
+        const ki = this.findKey(name), server = window.selectServer;
         if (ki) {
             ki.full = key.full
             ki.name = key.full?.split(server.advancedSettings?.namespaceSeparator || ":").reverse()[0] || key.name
             ki.size = key.size
             ki.ttl = key.ttl
-            this.setState({serverList:[...serverList]})
-            console.log(server)
+            this.updateServerList()
         }
 
         console.log(ki, key, id, db, name)
     }
-    handleEventDelete(id: string, db: any, key: KeyInfo) {
-        const {serverList} = this.state
-        const server = serverList.filter(s => s.id === id)[0]
-        if (!server) {
-            console.log(id + ' 服务器不存在')
-            return;
-        }
-
-        const dB = server.db.filter(d => d.index == db)[0]
-        if (!dB) {
-            console.log(db + ' 不存在')
-            return;
-        }
-
-        const findDelete = (ar: Array<KeyInfo>) => {
-            for (let i = 0; i < ar.length; i++) {
-                const k = ar[i]
-                if (k.full == key.full) {
-                    ar.splice(i, 1)
-                    this.setState({serverList: [...serverList]})
-                    break;
-                }
-                if (k?.children && k.children.length > 0) {
-                    findDelete(k.children)
-                }
-            }
-        }
-
-        findDelete(dB.children);
+    handleEventDelete(id: string, db: any, key: string) {
         console.log(key, id, db)
+        this.deleteKey(key)
     }
 
 
@@ -139,6 +80,52 @@ export class HandleBasicLayout extends React.PureComponent<any, ParamType> {
     }
     setServerList(serverList: Server[]) {
         this.setState({serverList: [...serverList]})
+    }
+    updateServerList() {
+        this.setState({serverList: [...this.state.serverList]})
+    }
+
+
+    findKey(keyName: string): KeyInfo | null {
+        const {selectServerId, selectDatabase} = window
+        const server = this.findServerById(selectServerId)
+        const db = server.db[selectDatabase]
+
+        const find = (ar: Array<KeyInfo>): any => {
+            for (const k of ar) {
+                if (k.full == keyName)
+                    return k;
+                if (k?.children && k.children.length > 0) {
+                    const v = find(k.children)
+                    if (v) return v
+                }
+            }
+            return null
+        }
+
+        return find(db.children)
+    }
+    deleteKey(keyName: string) {
+        const {selectServerId, selectDatabase} = window
+        const server = this.findServerById(selectServerId)
+        const db = server.db[selectDatabase]
+
+        const find = (key: any) => {
+            for (let i = 0; i < key.children.length; i++) {
+                const k = key.children[i]
+                if(k.full === keyName) {
+                    key.children.splice(i, 1)
+                    key.count = key.count - k.count
+                    this.updateServerList()
+                    break;
+                }
+                if (k?.children && k.children.length > 0) {
+                    find(k)
+                }
+            }
+        }
+
+        find(db)
     }
 
 }

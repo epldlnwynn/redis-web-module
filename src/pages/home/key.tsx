@@ -7,13 +7,13 @@ import intl from "@/utils/intl";
 import eventBus from "listen-events";
 
 
-const win = window as any
-let timeoutId = 0
+
+let timeoutId = 0, eventSource: EventSource | null = null
 export default () => {
     const history = useHistory()
-    const {id,db,type,name:full} = useParams<{id:string;db:any;type:string;name:string}>()
-    const [key, setKey] = useState<KeyInfo>({name:full,full,type,count:0,children:[],ttl:-1})
-    let ttl = 0;
+    const {id,db,name:full} = useParams<{id:string;db:any;type:string;name:string}>()
+    const [key, setKey] = useState<KeyInfo>({name:full,full,type:"",count:0,children:[],ttl:-1})
+    let ttl = 0, type = "string";
 
 
     const intervalTimer = (time: number) => {
@@ -29,12 +29,13 @@ export default () => {
         }, 1000)
     }
     const loadKeyData = () => {
-        const source = APIs.values(id,db,type,full)
-        if (!source) return undefined;
+        console.log('type', type)
+        eventSource = APIs.values(id, db, type, full)
+        if (!eventSource) return undefined;
 
-        source.on("info", data => {
+        eventSource.on("info", data => {
             key.ttl = data.ttl
-            key.type = type
+            key.type = data.type || type
             key.name = data.name
             key.full = data.full
             key.size = data.size
@@ -45,11 +46,10 @@ export default () => {
 
             if (data.ttl > 0)
                 intervalTimer(data.ttl)
-
         });
 
-        source.on("message", data => {
-            if ("string" === type) {
+        eventSource.on("message", data => {
+            if ("string" === key.type) {
                 key.content = data
             } else {
                 key.children?.push(...data)
@@ -57,7 +57,6 @@ export default () => {
             setKey({...key})
         })
 
-        return source
     }
     const handleReloadValue = (e: HTMLButtonElement) => {
         e.disabled = true
@@ -80,7 +79,7 @@ export default () => {
         e.disabled = true
         APIs.delete(id, db, name).then(model => {
             if (model.isSuccess()) {
-                eventBus.emit("eventDelete", id, db, key)
+                eventBus.emit("eventDelete", id, db, key.full)
                 toast(intl.get("editor.delete.success"))
                 history.push('/')
             }
@@ -94,16 +93,16 @@ export default () => {
             return
 
         e.disabled = true
-        if (type === "list")
+        if (key.type === "list")
             fun = APIs.list.del(id, db, full, key.itemIndex)
 
-        if (type === "hash" && key.field)
+        if (key.type === "hash" && key.field)
             fun = APIs.hash.del(id, db, full, key.field)
 
-        if (type === "zset" && key.field)
+        if (key.type === "zset" && key.field)
             fun = APIs.zset.del(id,db, full, key.content)
 
-        if (type === "set")
+        if (key.type === "set")
             fun = APIs.sset.del(id, db, full, key.content)
 
         fun?.finally(() => {
@@ -119,14 +118,14 @@ export default () => {
         e.disabled = true
         let fun: any = null
 
-        if (type === "hash") {
+        if (key.type === "hash") {
             fun = APIs.hash.set(id, db, full, field, value, field === key.field ? undefined : key.field).then(model => {
                 // @ts-ignore
                 key.children[key.itemIndex].field = field, key.children[key.itemIndex].value = value
             });
         }
 
-        if (type === "zset")
+        if (key.type === "zset")
             fun = APIs.zset.set(id, db, full, field, value, field === key.field ? undefined : key.field).then(model => {
                 // @ts-ignore
                 key.children[key.itemIndex].value = field, key.children[key.itemIndex].score = value
@@ -144,12 +143,12 @@ export default () => {
         e.disabled = true
         let fun = null;
 
-        if (type === "string")
+        if (key.type === "string")
             fun = APIs.string.set(id, db, full, value).then(model => {
                 key.content = isJSON(value) ? JSON.parse(value) : value
             });
 
-        if (type === "list")
+        if (key.type === "list")
             fun = APIs.list.set(id, db, full, value, key.itemIndex).then(model => {
                 if (key.itemIndex != undefined && key.children) {
                     key.children[key.itemIndex] = value
@@ -157,7 +156,7 @@ export default () => {
                 }
             })
 
-        if (type === "set")
+        if (key.type === "set")
             fun = APIs.sset.set(id, db, full, value, key.content).then(model => {
                 // @ts-ignore
                 key.children[key.itemIndex] = value, key.content = isJSON(value) ? JSON.parse(value) : value
@@ -176,25 +175,25 @@ export default () => {
             if (model.isSuccess()) {
                 key.full = newKey
                 eventBus.emit("eventUpdate", id,db, oldKey, key)
-                history.push(`/info/${id}/${db}/${type}/${newKey}`)
+                history.push(`/info/${id}/${db}/${key.type}/${newKey}`)
             }
         }).finally(() => {
             e.disabled = false
         })
     }
     const handleSelectedItem = (item: any, index: number) => {
-        if (type == "hash") {
+        if (key.type == "hash") {
             key.field = item.field
             key.size = item.value.toString().length
             key.content = isJSON(item.value) ? JSON.parse(item.value) : item.value
         }
 
-        if (type == "list" || type == "set") {
+        if (key.type == "list" || key.type == "set") {
             key.size = item.length
             key.content = isJSON(item) ? JSON.parse(item) : item
         }
 
-        if (type == "zset") {
+        if (key.type == "zset") {
             key.field = item.value
             key.content = item.score
             key.size = item.score.toString().length
@@ -205,14 +204,16 @@ export default () => {
         setKey({...key})
     }
 
-
-
     useEffect(() => {
-        window.clearInterval(timeoutId)
-        const source = loadKeyData()
 
-        return () => source?.close()
-    }, [id, db, type, full])
+        window.clearInterval(timeoutId)
+        APIs.type(id, db, full).then(model => {
+            type = model.data
+            loadKeyData()
+        })
+
+        return () => eventSource?.close()
+    }, [id, db, full])
 
 
     return <div className={styles.keyWrap}>

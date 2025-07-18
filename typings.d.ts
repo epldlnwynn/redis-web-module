@@ -30,8 +30,8 @@ interface KeyInfo {
     count: number;
 
 
-    full?: string;
-    type?: string;
+    full: string;
+    type: string;
     ttl?: number;
     size?: number;
     expand?: boolean;
@@ -49,6 +49,8 @@ interface Server extends RedisInfo {
     port: number;
     password?: string;
     username?: string;
+    version?: string;
+    majorVersion?: number;
 
     security?: {
         type: 'tls' | 'tunnel' | undefined;
@@ -114,6 +116,12 @@ interface String {
 interface Window {
     loadCss(paths: Array<string>, dela?: number): void;
     loadJS(url: string, success?: () => void): void;
+
+
+    selectServer: Server;
+    selectServerId: string;
+    selectDatabase: number;
+
 }
 
 interface DateConstructor {

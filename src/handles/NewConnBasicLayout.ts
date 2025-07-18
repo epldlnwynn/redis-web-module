@@ -25,58 +25,75 @@ export class NewConnBasicLayout extends SettingBasicLayout {
 
 
     handleDeleteConnection(serverId: string, e:HTMLButtonElement) {
-        const server = this.findServerById(serverId)
-        console.log("handleDisconnection", server)
+        const T = this, {serverList} = this.state
+
+        e.disabled = true
+        APIs.serverDel(serverId).then(model => {
+            if (model.isSuccess()) {
+                T.setServerList(serverList.filter(s => s.id !== serverId))
+            } else {
+                alert(model.message)
+            }
+        }).finally(() => {
+            e.disabled = false
+        })
 
     }
     handleReloadConnection(serverId: string) {
-        const { serverList } = this.state
+        const T = this
         const server = this.findServerById(serverId)
 
         server.state = 'connection'
-        this.setServerList(serverList)
+        T.updateServerList()
 
         const source = APIs.db(server.id)
         if (source) {
             source.onopen = e => {
                 server.state = 'open'
                 server.expand = true
-                this.setServerList(serverList)
+                T.updateServerList()
+            };
+            source.onerror = (e: any) => {
+                source.close()
+                console.error(e)
+                server.state = undefined
+                T.updateServerList()
+                alert(e.data)
             };
             source.on("redis-db", data => {
                 server.db = [...data]
-                this.setServerList(serverList)
+                T.updateServerList()
             });
         }
 
     }
     handleReloadDatabase(serverId: string, database: number) {
-        const {selectServerId, selectDatabase, serverList} = this.state
+        const {selectServerId, selectDatabase} = window
         const server = this.findServerById(serverId || selectServerId)
 
         const dbs = server.db[database || selectDatabase], T = this
 
         dbs.state = 'query'
-        this.setServerList(serverList)
+        this.updateServerList()
 
         const source = APIs.keyspace(server.id, dbs.index)
         if (source) {
             source.onopen = e => {
                 dbs.expand = true
-                T.setServerList(serverList)
+                T.updateServerList()
             }
             source.on("keyspace", data => {
                 dbs.children = [...data.children]
-                T.setServerList(serverList)
+                T.updateServerList()
             })
             source.on("close", e => {
                 dbs.state = "open"
-                T.setServerList(serverList)
+                T.updateServerList()
             })
         }
     }
-    handleReloadNamespace(group: string) {
-
+    handleReloadNamespace(group: string, e:HTMLButtonElement) {
+        console.log(group)
     }
     handleEditConnection(serverId: string) {
         const server = this.findServerById(serverId)
@@ -85,6 +102,7 @@ export class NewConnBasicLayout extends SettingBasicLayout {
             editServer: {...server},
         })
     }
+
 
 
     handleNewConnection() {
@@ -159,6 +177,9 @@ export class NewConnBasicLayout extends SettingBasicLayout {
             if (model.isSuccess()) {
                 const {state, version} = model.data
                 if (state) {
+                    editServer.version = version
+                    editServer.majorVersion = parseFloat(version.match(/\d+.\d+/)[0])
+                    this.setState({editServer: {...editServer}})
                     const msg = intl.get("connection.error.success")
                     alert(msg + version)
                 } else {

@@ -12,6 +12,9 @@ const APIs = {
     serverTest(server: Server) {
         return Service.post("test", server)
     },
+    serverDel(serverId: string) {
+        return Service.get("delete/" + serverId)
+    },
 
 
 
@@ -24,6 +27,7 @@ const APIs = {
     },
 
     values(id: string, db: number, type: string, key: string) {
+        console.log('api.values', window.selectServerId, window.selectDatabase)
         return Service.eventSource([id, db, "get", type, key].join("/"))
     },
 
@@ -32,6 +36,7 @@ const APIs = {
         const uri = [id, db, opOrMethod]
         type && uri.push(type)
 
+        console.log('api.sendCmd', window.selectServerId, window.selectDatabase)
         return Service.post(uri.join("/"), data).then(model => {
             if (model.code == 505)
                 return model;
@@ -42,11 +47,14 @@ const APIs = {
             return model
         })
     },
+    type(id: string, db: number, key: string) {
+        return this.sendCmd(id, db, "type", null, {key})
+    },
     expire(id:string, db:number, key:string, seconds:number) {
         return this.sendCmd(id, db, "expire", null, {key,value:seconds})
     },
-    delete(id:string, db:number, key:string) {
-        return this.sendCmd(id,db,"delete", null, {key})
+    delete(id:string, db:number, key:string, isGroup?:boolean) {
+        return this.sendCmd(id,db,"delete", null, {key,isGroup})
     },
     rename(id: string, db: number, oldKey: string, key:string) {
         const data = {force:0, oldKey, key}
@@ -132,28 +140,6 @@ const APIs = {
 
 
 
-    save(id: string, db: number, data: ISave) {
-        return Service.post(["/api/redis/save/",id, "/", db].join(""), data).then(model => {
-            if (model.code == 505)
-                return model;
-
-            if (!model.isSuccess())
-                toast(model.message)
-
-            return model
-        })
-    }
-
-
-
 }
-
-interface ISave {
-    op: 'delete' | 'update' | 'add' | 'rename' | 'lpush';
-    type: 'key' | 'ttl' | 'item' | 'value' | 'list' | 'zset' | 'set';
-
-    [key: string]: any;
-}
-
 
 export default APIs
