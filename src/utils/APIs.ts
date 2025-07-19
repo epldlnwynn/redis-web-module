@@ -22,8 +22,10 @@ const APIs = {
         if (!id) return null;
         return Service.eventSource(id)
     },
-    keyspace(id: string | undefined, db: number | undefined) {
-        return Service.eventSource([id, db].join("/"))
+    keyspace(id: string, db: number, filter?: string) {
+        const url = [id, '/', db];
+        if (filter) url.push("?filter=", filter)
+        return Service.eventSource(url.join(""))
     },
 
     values(id: string, db: number, type: string, key: string) {

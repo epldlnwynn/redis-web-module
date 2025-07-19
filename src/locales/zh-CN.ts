@@ -6,6 +6,22 @@ export default {
     "button.connect-redis": "连接到 Redis 服务器",
 
 
+    "sidebar.menu.server.reload-tip": "重新加载服务器",
+    "sidebar.menu.server.edit-tip": "编辑连接设置",
+    "sidebar.menu.server.copy-tip": "复制 Redis URI",
+    "sidebar.menu.server.delete-tip": "删除连接",
+    "sidebar.menu.server.delete-confirm": "您确定要删除该连接吗？",
+    "sidebar.menu.db.filter-tip": "打开键筛选器",
+    "sidebar.menu.db.filter-prompt": "输入需要筛选的键:",
+    "sidebar.menu.db.reload-tip": "重新加载数据库中的键",
+    "sidebar.menu.group.reload-tip": "重新加载命名空间",
+    "sidebar.menu.group.add-tip": "添加新键",
+    "sidebar.menu.group.delete-tip": "删除命名空间",
+    "sidebar.menu.group.delete-confirm": "您确定要删除该键吗？",
+    "sidebar.menu.group.copy-tip": "复制命名空间模式",
+    "sidebar.menu.info.copy-tip": "复制键名称",
+
+
     "editor.toolbar.button.copy": "复制",
     "editor.toolbar.button.save": "保存",
     "editor.toolbar.button.delete": "删除",

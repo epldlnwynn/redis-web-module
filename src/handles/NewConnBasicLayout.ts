@@ -21,6 +21,7 @@ export class NewConnBasicLayout extends SettingBasicLayout {
         eventBus.on("eventEditConnection", this.handleEditConnection.bind(this))
         eventBus.on("eventReloadDatabase", this.handleReloadDatabase.bind(this))
         eventBus.on("eventReloadNamespace", this.handleReloadNamespace.bind(this))
+        eventBus.on("eventFilterDatabase", this.handleFilterDatabase.bind(this))
     }
 
 
@@ -67,7 +68,7 @@ export class NewConnBasicLayout extends SettingBasicLayout {
         }
 
     }
-    handleReloadDatabase(serverId: string, database: number) {
+    handleReloadDatabase(serverId: string, database: number, filter?: string) {
         const {selectServerId, selectDatabase} = window
         const server = this.findServerById(serverId || selectServerId)
 
@@ -76,7 +77,7 @@ export class NewConnBasicLayout extends SettingBasicLayout {
         dbs.state = 'query'
         this.updateServerList()
 
-        const source = APIs.keyspace(server.id, dbs.index)
+        const source = APIs.keyspace(serverId || selectServerId, dbs.index, filter)
         if (source) {
             source.onopen = e => {
                 dbs.expand = true
@@ -94,6 +95,21 @@ export class NewConnBasicLayout extends SettingBasicLayout {
     }
     handleReloadNamespace(group: string, e:HTMLButtonElement) {
         console.log(group)
+        toast("Coming soon")
+    }
+    handleFilterDatabase(e: HTMLButtonElement) {
+        const {selectServerId, selectDatabase, selectServer} = window
+        const {advancedSettings} = selectServer, T = this
+        const tip = intl.get("sidebar.menu.db.filter-prompt")
+        if (bridgeApi && bridgeApi.prompt) {
+            bridgeApi.prompt(tip, advancedSettings?.defaultFilter || "*").then((text: string) => {
+                T.handleReloadDatabase(selectServerId, selectDatabase, text)
+            })
+        } else {
+            const filter = prompt(tip, advancedSettings?.defaultFilter || "*") || undefined
+            T.handleReloadDatabase(selectServerId, selectDatabase, filter)
+        }
+
     }
     handleEditConnection(serverId: string) {
         const server = this.findServerById(serverId)

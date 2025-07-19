@@ -3,17 +3,18 @@ import React from "react";
 import styles from "./redis-menu.less"
 import ReactDOM from "react-dom";
 import eventBus from "listen-events";
+import intl from "@/utils/intl";
 
 
 
 const handleDeleteKey = (group: string | undefined, e: HTMLButtonElement) => {
-    if (!confirm(`Do you really want to delete the ${group}* key?`)) return
+    if (!confirm(intl.get("sidebar.menu.group.delete-confirm"))) return
 
     if (group)
         eventBus.emit("eventDeleteKey", group, e)
 }
 const handleDeleteServer = (e: HTMLButtonElement, id?: string) => {
-    if (!confirm("Do you really want to delete connection?")) return
+    if (!confirm(intl.get("sidebar.menu.server.delete-confirm"))) return
 
     if (id)
         eventBus.emit("eventDeleteConnection", id, e)
@@ -27,18 +28,18 @@ export const MenuServer = (e: HTMLDivElement) => {
     div.classList.add(styles.sidebarMenu)
 
     ReactDOM.render(<>
-        <button className="tooltipped tooltipped-w" aria-label="Reload Server"
+        <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.server.reload-tip")}
                 onClick={e => eventBus.emit("eventReloadConnection", serverId, e.currentTarget)}>
             <Icon type="icon-reload"></Icon>
         </button>
-        <button className="tooltipped tooltipped-w" aria-label="Edit Connection Settings"
+        <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.server.edit-tip")}
                 onClick={e => eventBus.emit("eventEditConnection", serverId, e.currentTarget)}>
             <Icon type="icon-settings"></Icon>
         </button>
-        <button className="tooltipped tooltipped-w clipboard-copy" aria-label="Copy Redis Uri" data-clipboard-text={url}>
+        <button className="tooltipped tooltipped-w clipboard-copy" aria-label={intl.get("sidebar.menu.server.copy-tip")} data-clipboard-text={url}>
             <Icon type="icon-copy-link"></Icon>
         </button>
-        <button type="button" className="tooltipped tooltipped-w" aria-label="Delete Connection"
+        <button type="button" className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.server.delete-tip")}
                 onClick={e => handleDeleteServer(e.currentTarget, serverId)}>
             <Icon type="icon-delete"></Icon>
         </button>
@@ -53,14 +54,15 @@ export const MenuDb = (e:HTMLDivElement) => {
     div.classList.add(styles.sidebarMenu)
 
     ReactDOM.render(<>
-        <button className="tooltipped tooltipped-w" aria-label="Open Keys Filter">
+        <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.db.filter-tip")}
+                onClick={e => eventBus.emit("eventFilterDatabase", e.currentTarget)}>
             <Icon type="icon-filter"></Icon>
         </button>
-        <button className="tooltipped tooltipped-w" aria-label="Reload Keys in Database"
-                onClick={e => eventBus.emit("eventReloadDatabase", null, null, e.currentTarget)}>
+        <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.db.reload-tip")}
+                onClick={e => eventBus.emit("eventReloadDatabase", null, null, null, e.currentTarget)}>
             <Icon type="icon-reload"></Icon>
         </button>
-        <button className="tooltipped tooltipped-w" aria-label="Add New Key"
+        <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.group.add-tip")}
                 onClick={e => eventBus.emit("eventAddNewKey", null, e.currentTarget)}>
             <Icon type="icon-add"></Icon>
         </button>
@@ -75,18 +77,19 @@ export const MenuGroup = (e:HTMLDivElement) => {
     div.classList.add(styles.sidebarMenu)
 
     ReactDOM.render(<>
-        <button className="tooltipped tooltipped-w" aria-label="Reload Namespace"
+        <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.group.reload-tip")}
                 onClick={e => eventBus.emit("eventReloadNamespace", group, e.currentTarget)}>
             <Icon type="icon-reload"></Icon>
         </button>
-        <button className="tooltipped tooltipped-w" aria-label="Add New Key"
+        <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.group.add-tip")}
                 onClick={e => eventBus.emit("eventAddNewKey", group, e.currentTarget)}>
             <Icon type="icon-add"></Icon>
         </button>
-        <button className="tooltipped tooltipped-w clipboard-copy" data-clipboard-text={group+'*'} aria-label="Copy Namespace Pattern">
+        <button className="tooltipped tooltipped-w clipboard-copy" data-clipboard-text={group+'*'} aria-label={intl.get("sidebar.menu.group.copy-tip")}>
             <Icon type="icon-copy"></Icon>
         </button>
-        <button className="tooltipped tooltipped-w" aria-label="Delete Namespace" onClick={e => handleDeleteKey(group, e.currentTarget)}>
+        <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.group.delete-tip")}
+                onClick={e => handleDeleteKey(group, e.currentTarget)}>
             <Icon type="icon-delete"></Icon>
         </button>
     </>, div)
@@ -100,7 +103,7 @@ export const MenuInfo = (e:HTMLDivElement) => {
     div.classList.add(styles.sidebarMenu)
 
     ReactDOM.render(<>
-        <button className="tooltipped tooltipped-w clipboard-copy" data-clipboard-text={e.id} aria-label="Copy Key Name">
+        <button className="tooltipped tooltipped-w clipboard-copy" data-clipboard-text={e.id} aria-label={intl.get("sidebar.menu.info.copy-tip")}>
             <Icon type="icon-copy"></Icon>
         </button>
     </>, div)

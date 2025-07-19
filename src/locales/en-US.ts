@@ -6,6 +6,22 @@ export default {
     "button.connect-redis": "Connect To Redis Server",
 
 
+    "sidebar.menu.server.reload-tip": "Reload Server",
+    "sidebar.menu.server.edit-tip": "Edit Connection Settings",
+    "sidebar.menu.server.copy-tip": "Copy Redis Uri",
+    "sidebar.menu.server.delete-tip": "Delete Connection",
+    "sidebar.menu.server.delete-confirm": "Do you really want to delete connection?",
+    "sidebar.menu.db.filter-tip": "Open Keys Filter",
+    "sidebar.menu.db.filter-prompt": "Enter the key to be filtered:",
+    "sidebar.menu.db.reload-tip": "Reload Keys in Database",
+    "sidebar.menu.group.reload-tip": "Reload Namespace",
+    "sidebar.menu.group.add-tip": "Add New Key",
+    "sidebar.menu.group.delete-tip": "Delete Namespace",
+    "sidebar.menu.group.delete-confirm": "Do you really want to delete the key?",
+    "sidebar.menu.group.copy-tip": "Copy Namespace Pattern",
+    "sidebar.menu.info.copy-tip": "Copy Key Name",
+
+
     "editor.toolbar.button.copy": "Copy",
     "editor.toolbar.button.save": "Save",
     "editor.toolbar.button.delete": "Delete",

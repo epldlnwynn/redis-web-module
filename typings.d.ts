@@ -161,7 +161,8 @@ declare var $: (selector: string) => any,
     isJSON: (a: any) => boolean,
     uuid: (format?:string) => string,
     toast: (text: string, icon?: string | undefined | null, delay?: number, className?: string) => {el: HTMLDivElement, hide(animated?:boolean): void},
-    sleep: (timeout: number) => Promise<void>
+    sleep: (timeout: number) => Promise<void>,
+    bridgeApi: any
 ;
 
 
