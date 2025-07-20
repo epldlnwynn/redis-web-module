@@ -27,6 +27,17 @@
         gap: 10px;
         border-radius: var(--border-radius-big);
 
+        .loading{
+            margin-right: -10px;
+
+            :global {
+                svg {
+                    color: #ff0000;
+                    animation: 1.5s linear 0s infinite normal none running loading-circle
+                }
+            }
+        }
+
         label{
             text-transform: uppercase;
             padding-left: 8px;

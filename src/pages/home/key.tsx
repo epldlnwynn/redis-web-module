@@ -12,6 +12,7 @@ let timeoutId = 0, eventSource: EventSource | null = null
 export default () => {
     const history = useHistory()
     const {id,db,name:full} = useParams<{id:string;db:any;type:string;name:string}>()
+    const [loadState, setLoadState] = useState('end')
     const [key, setKey] = useState<KeyInfo>({name:full,full,type:"",count:0,children:[],ttl:-1})
     let ttl = 0, type = "string";
 
@@ -47,6 +48,9 @@ export default () => {
             if (data.ttl > 0)
                 intervalTimer(data.ttl)
         });
+        eventSource.on("close", e => {
+            setLoadState('end')
+        })
 
         eventSource.on("message", data => {
             if ("string" === key.type) {
@@ -207,6 +211,7 @@ export default () => {
     useEffect(() => {
 
         window.clearInterval(timeoutId)
+        setLoadState('start')
         APIs.type(id, db, full).then(model => {
             type = model.data
             loadKeyData()
@@ -219,6 +224,7 @@ export default () => {
     return <div className={styles.keyWrap}>
 
         <RedisEditor data={key}
+                     state={loadState}
                      handleDeleteItem={handleDeleteItem}
                      handleSelectedItem={handleSelectedItem}
                      handleSaveTtl={handleSetTTL}

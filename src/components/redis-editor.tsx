@@ -11,6 +11,7 @@ import InputButton from "@/components/input-button";
 
 interface Props {
     data: KeyInfo;
+    state: string;
 
     handleReloadValue?: (e: HTMLButtonElement) => void;
     handleDelete?: (name: string, e: HTMLButtonElement) => void;
@@ -227,6 +228,9 @@ const RedisEditor: FC<Props> = (p) => {
     return <div className={styles.stringItem}>
 
         <div className={styles.header}>
+            <span className={styles.loading} hidden={p.state != 'start'}>
+                <Icon type="icon-loading"></Icon>
+            </span>
             <label>{key.type}</label>
             <InputButton
                 icon="icon-save"
