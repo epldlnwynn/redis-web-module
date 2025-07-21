@@ -91,6 +91,9 @@ export class HandleBasicLayout extends React.PureComponent<any, ParamType> {
         const server = this.findServerById(selectServerId)
         const db = server.db[selectDatabase]
 
+        return this.findKeysByName(keyName, db.children)
+    }
+    findKeysByName(keyName: string, keys: Array<KeyInfo>) {
         const find = (ar: Array<KeyInfo>): any => {
             for (const k of ar) {
                 if (k.full == keyName)
@@ -102,8 +105,7 @@ export class HandleBasicLayout extends React.PureComponent<any, ParamType> {
             }
             return null
         }
-
-        return find(db.children)
+        return find(keys)
     }
     deleteKey(keyName: string) {
         const {selectServerId, selectDatabase} = window

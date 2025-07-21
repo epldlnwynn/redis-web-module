@@ -30,7 +30,7 @@ export const MenuServer = (e: HTMLDivElement) => {
     ReactDOM.render(<>
         <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.server.reload-tip")}
                 onClick={e => eventBus.emit("eventReloadConnection", serverId, e.currentTarget)}>
-            <Icon type="icon-reload"></Icon>
+            <Icon type="icon-refresh"></Icon>
         </button>
         <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.server.edit-tip")}
                 onClick={e => eventBus.emit("eventEditConnection", serverId, e.currentTarget)}>
@@ -60,7 +60,7 @@ export const MenuDb = (e:HTMLDivElement) => {
         </button>
         <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.db.reload-tip")}
                 onClick={e => eventBus.emit("eventReloadDatabase", null, null, null, e.currentTarget)}>
-            <Icon type="icon-reload"></Icon>
+            <Icon type="icon-refresh"></Icon>
         </button>
         <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.group.add-tip")}
                 onClick={e => eventBus.emit("eventAddNewKey", null, e.currentTarget)}>
@@ -79,7 +79,7 @@ export const MenuGroup = (e:HTMLDivElement) => {
     ReactDOM.render(<>
         <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.group.reload-tip")}
                 onClick={e => eventBus.emit("eventReloadNamespace", group, e.currentTarget)}>
-            <Icon type="icon-reload"></Icon>
+            <Icon type="icon-refresh"></Icon>
         </button>
         <button className="tooltipped tooltipped-w" aria-label={intl.get("sidebar.menu.group.add-tip")}
                 onClick={e => eventBus.emit("eventAddNewKey", group, e.currentTarget)}>

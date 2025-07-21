@@ -94,8 +94,24 @@ export class NewConnBasicLayout extends SettingBasicLayout {
         }
     }
     handleReloadNamespace(group: string, e:HTMLButtonElement) {
-        console.log(group)
-        toast("Coming soon")
+        const key = this.findKey(group) || {} as any
+        const {selectServerId, selectDatabase} = window, T = this
+
+        const source = APIs.keyspace(selectServerId, selectDatabase, group + "*")
+        if (source) {
+            e.disabled = true
+            source.on("keyspace", data => {
+                const newKey = T.findKeysByName(group, data.children)
+                key.count = newKey.count
+                key.children = [...newKey.children]
+                T.updateServerList()
+                e.disabled = false
+            })
+            source.on("close", ex => {
+                e.disabled = false
+            })
+        }
+
     }
     handleFilterDatabase(e: HTMLButtonElement) {
         const {selectServerId, selectDatabase, selectServer} = window
