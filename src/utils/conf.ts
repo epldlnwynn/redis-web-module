@@ -1,6 +1,7 @@
 
 
-const SIDEBAR_WIDTH = "sidebar-width";
+const SIDEBAR_WIDTH = "sys.sidebar-width";
+const REDIS_SETTINGS = "sys.settings"
 
 const conf = {
 
@@ -18,6 +19,13 @@ const conf = {
     },
     setSidebarWidth(width: string) {
         localStorage.setItem(SIDEBAR_WIDTH, width)
+    },
+
+    getSettings() {
+        return JSON.parse(localStorage.getItem(REDIS_SETTINGS) || "{}")
+    },
+    setSettings(settings: any) {
+        localStorage.setItem(REDIS_SETTINGS, JSON.stringify(settings))
     }
 
 }

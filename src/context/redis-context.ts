@@ -19,7 +19,7 @@ export interface IRedisContext {
 }
 
 
-export const redisContext = {
+export const redisContext = Object.assign({
 
     lang: intl.getLocale(),
     theme: localTheme.theme,
@@ -34,7 +34,7 @@ export const redisContext = {
     maximumNumberPerPage: 1000,
     scanUpperLimit: 1000,
 
-} as IRedisContext
+}, conf.getSettings()) as IRedisContext
 
 
 const RedisContext = createContext<IRedisContext>(redisContext)

@@ -1,4 +1,5 @@
 import Service from "@/utils/service-base";
+import conf from "@/utils/conf";
 
 
 const APIs = {
@@ -60,7 +61,8 @@ const APIs = {
         return this.sendCmd("delete", null, {key,isGroup})
     },
     rename(oldKey: string, key:string) {
-        const data = {force:0, oldKey, key}
+        const data = {force:0, oldKey, key}, sts = conf.getSettings()
+        if (sts?.confirmSameNameOverlap == false) data.force = 1
         return this.sendCmd("rename", null, data).then(model => {
             if (model.code == 505 && confirm("The key name already exists, do you want to overwrite it?")) {
                 data.force = 1
@@ -86,7 +88,8 @@ const APIs = {
             return APIs.sendCmd("del", "hash", {key,field})
         },
         rename( key:string, oldField:string, newField:string, value?:any){
-            const data = {key,oldField,newField,value,force:0}
+            const data = {key,oldField,newField,value,force:0}, sts = conf.getSettings()
+            if (sts?.confirmSameNameOverlap == false) data.force = 1
             return APIs.sendCmd("rename", "hash", data).then(model => {
                 if (model.code == 505 && confirm("The key name already exists, do you want to overwrite it?")) {
                     data.force = 1

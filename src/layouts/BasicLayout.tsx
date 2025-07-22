@@ -228,19 +228,19 @@ export default class BasicLayout extends NewKeyBasicLayout {
                             <tr>
                                 <th>{intl.get("settings.advanced.confirm-same-name-overlap")}</th>
                                 <td>
-                                    <InputNumber />
+                                    <input type="checkbox" onChange={this.handleSettingsChange.bind(this)} defaultChecked={redisContext.confirmSameNameOverlap} name="confirmSameNameOverlap"/>
                                 </td>
                             </tr>
                             <tr>
                                 <th>{intl.get("settings.advanced.maximum-number-per-page")}</th>
                                 <td>
-                                    <InputNumber />
+                                    <InputNumber onChange={this.handleSettingsChange.bind(this)} defaultValue={redisContext.maximumNumberPerPage} name="maximumNumberPerPage" />
                                 </td>
                             </tr>
                             <tr>
                                 <th>{intl.get("settings.advanced.scan-upper-limit")}</th>
                                 <td>
-                                    <InputNumber />
+                                    <InputNumber onChange={this.handleSettingsChange.bind(this)} defaultValue={redisContext.scanUpperLimit} name="scanUpperLimit" />
                                 </td>
                             </tr>
                         </tbody>
