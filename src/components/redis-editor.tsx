@@ -20,7 +20,7 @@ interface Props {
     handleRenameSave?: (oldName: string, newName: string, e: HTMLButtonElement) => void;
     handleSaveItem?: (field: string, value: string, e: HTMLButtonElement) => void;
     handleSaveValue?: (value: string, e: HTMLButtonElement) => void;
-    handleSelectedItem?: (item: any, index: number) => void;
+    handleSelectedItem?: (item: any, index: any) => void;
 }
 
 
@@ -161,17 +161,23 @@ const handleDeleteItem = (p: Props, e: HTMLButtonElement) => {
 
 let prevTr: any = null
 const handleItem = (p:Props, item: KeyInfo, index: number, e: any) => {
-    const tr = e.currentTarget
+    const tr = e.currentTarget, has = tr.classList.contains(styles.active)
     tr.classList.add(styles.active)
     prevTr?.classList.remove(styles.active)
     prevTr = tr
 
-    p.handleSelectedItem && p.handleSelectedItem(item, index)
+    if (p.handleSelectedItem) {
+        if (has) {
+            p.handleSelectedItem(undefined, undefined)
+        } else {
+            p.handleSelectedItem(item, index)
+        }
+    }
 }
 
 
 const handleExportFile = (e: HTMLButtonElement, key: KeyInfo) => {
-    const div = e.parentNode as HTMLDivElement, ta = div.nextElementSibling as HTMLTextAreaElement
+    const div = e.parentElement?.parentElement as HTMLDivElement, ta = div.nextElementSibling as HTMLTextAreaElement
     const val = ta.value
 
     const isJSON = val.startsWith('{') || val.startsWith('[')
@@ -181,13 +187,13 @@ const handleExportFile = (e: HTMLButtonElement, key: KeyInfo) => {
 }
 const handleSaveValue = (p: Props, e: HTMLButtonElement) => {
     // @ts-ignore
-    const ta = e.parentNode?.nextElementSibling as HTMLTextAreaElement
+    const ta = e.parentElement.parentElement?.nextElementSibling as HTMLTextAreaElement
     console.log(ta, ta.value)
     p.handleSaveValue && p.handleSaveValue(ta.value, e)
 }
 const handleSaveItem = (p: Props, e: HTMLButtonElement) => {
     // @ts-ignore
-    const editor = e.parentNode.parentNode.parentNode
+    const editor = e.parentNode.parentNode.parentNode.parentNode
     const key = editor?.querySelector("#editor-key") as HTMLTextAreaElement
     const val = editor?.querySelector("#editor-value") as HTMLTextAreaElement
     p.handleSaveItem && p.handleSaveItem(key.value, val.value, e)
@@ -247,7 +253,7 @@ const RedisEditor: FC<Props> = (p) => {
                 {intl.get("editor.toolbar.button.delete")}
             </button>
             <button type="button" onClick={e => p.handleReloadValue && p.handleReloadValue(e.currentTarget)}>
-                <Icon type="icon-reload"></Icon>
+                <Icon type="icon-refresh"></Icon>
                 {intl.get("editor.toolbar.button.reload")}
             </button>
         </div>
@@ -269,18 +275,22 @@ const RedisEditor: FC<Props> = (p) => {
                         <dd>{key.children?.length || 0} {intl.get("editor.toolbar.length.unit")}</dd>
                     </dl>
                     <p></p>
-                    <button type="button" className="clipboard-copy" data-clipboard-action="copy" data-clipboard-target="#editor-key">
-                        <Icon type="icon-copy"></Icon>
-                        {intl.get("editor.toolbar.button.copy")}
-                    </button>
-                    <button type="button" onClick={e => handleSaveItem(p, e.currentTarget)}>
-                        <Icon type="icon-save"></Icon>
-                        {intl.get("editor.toolbar.button.save")}
-                    </button>
-                    <button type="button" onClick={e => handleDeleteItem(p, e.currentTarget)}>
-                        <Icon type="icon-delete"></Icon>
-                        {intl.get("editor.toolbar.button.delete-row")}
-                    </button>
+                    <div className={styles.operate}>
+                        <button type="button" className="clipboard-copy tooltipped tooltipped-n"
+                                aria-label={intl.get("editor.toolbar.button.copy")}
+                                data-clipboard-action="copy"
+                                data-clipboard-target="#editor-key">
+                            <Icon type="icon-copy"></Icon>
+                        </button>
+                        <button type="button" className="tooltipped tooltipped-n" aria-label={intl.get("editor.toolbar.button.delete-row")}
+                                onClick={e => handleDeleteItem(p, e.currentTarget)}>
+                            <Icon type="icon-delete"></Icon>
+                        </button>
+                        <button type="button" className="tooltipped tooltipped-n" aria-label={intl.get("editor.toolbar.button.save")}
+                                onClick={e => handleSaveItem(p, e.currentTarget)}>
+                            <Icon type="icon-save"></Icon>
+                        </button>
+                    </div>
                 </div>
 
                 <textarea
@@ -303,25 +313,32 @@ const RedisEditor: FC<Props> = (p) => {
                         <dd>{key.children?.length || 0} {intl.get("editor.toolbar.length.unit")}</dd>
                     </dl>}
                     <p></p>
+                    <div className={styles.operate}>
+                        <button type="button" className="clipboard-copy tooltipped tooltipped-n" aria-label={intl.get("editor.toolbar.button.copy")}
+                                data-clipboard-action="copy"
+                                data-clipboard-target="#editor-value">
+                            <Icon type="icon-copy"></Icon>
+                        </button>
+                        <button type="button" className="tooltipped tooltipped-n" aria-label={intl.get("editor.toolbar.button.export")}
+                                onClick={e => handleExportFile(e.currentTarget, key)}>
+                            <Icon type="icon-export"></Icon>
+                        </button>
+                    </div>
+                    <div className={styles.operate} aria-hidden={key?.type == 'hash' || key.type == "zset"}>
+                        <button type="button" className="tooltipped tooltipped-n" aria-label={intl.get("editor.toolbar.button.delete-row")}
+                                aria-hidden={!(key?.type == 'list' || key.type == "set")}
+                                onClick={e => handleDeleteItem(p, e.currentTarget)}>
+                            <Icon type="icon-delete"></Icon>
+                        </button>
+                        <button type="button" className="tooltipped tooltipped-n" aria-label={intl.get("editor.toolbar.button.save")}
+                                aria-hidden={key?.type == 'hash' || key.type == "zset"}
+                                onClick={e => handleSaveValue(p, e.currentTarget)}>
+                            <Icon type="icon-save"></Icon>
+                        </button>
+                    </div>
                     <select key={serializeIndex} onChange={e => handleSelectChange(e.currentTarget, key.content)} defaultValue={serializeIndex}>
                         {SERIALIZE_LIST.map((name,i) => <option key={name} value={i} defaultChecked={i === serializeIndex}>{name}</option>)}
                     </select>
-                    <button type="button" className="clipboard-copy" data-clipboard-action="copy" data-clipboard-target="#editor-value">
-                        <Icon type="icon-copy"></Icon>
-                        {intl.get("editor.toolbar.button.copy")}
-                    </button>
-                    <button type="button" onClick={e => handleExportFile(e.currentTarget, key)}>
-                        <Icon type="icon-export"></Icon>
-                        {intl.get("editor.toolbar.button.export")}
-                    </button>
-                    <button type="button" aria-hidden={!(key?.type == 'list' || key.type == "set")} onClick={e => handleDeleteItem(p, e.currentTarget)}>
-                        <Icon type="icon-delete"></Icon>
-                        {intl.get("editor.toolbar.button.delete-row")}
-                    </button>
-                    <button type="button" aria-hidden={key?.type == 'hash' || key.type == "zset"} onClick={e => handleSaveValue(p, e.currentTarget)}>
-                        <Icon type="icon-save"></Icon>
-                        {intl.get("editor.toolbar.button.save")}
-                    </button>
                 </div>
 
                 <textarea

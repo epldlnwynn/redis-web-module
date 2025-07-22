@@ -28,7 +28,6 @@
         border-radius: var(--border-radius-big);
 
         .loading{
-            margin-right: -10px;
 
             :global {
                 svg {
@@ -42,6 +41,8 @@
             text-transform: uppercase;
             padding-left: 8px;
             text-align: center;
+
+            &:empty{display: none}
         }
 
         input{
@@ -79,9 +80,6 @@
     margin-top: 15px;
     height: calc(var(--main-height) - 80px);
 
-    >div {
-        overflow: hidden;
-    }
 
     .editTable{
         border-radius: 0;
@@ -154,14 +152,6 @@
         flex: auto;
         display: flex;
         flex-direction: column;
-
-
-        //&[role='hash'],&[role='zset'],&[role='set'],&[role='list'] {
-        //    textarea {
-        //        height: 305px;
-        //    }
-        //}
-
     }
 
     .toolbar{
@@ -194,6 +184,19 @@
             padding: 2px 5px;
             height: 26px;
         }
+
+
+        .operate{
+            display: flex;
+            align-items: center;
+            border-radius: var(--border-radius);
+            background-color: var(--secondary-text-color);
+
+            button{
+                padding: 4px 6px;
+            }
+        }
+
     }
 
     textarea{

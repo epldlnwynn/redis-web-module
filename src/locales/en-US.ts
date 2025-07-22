@@ -24,6 +24,7 @@ export default {
 
     "editor.toolbar.button.copy": "Copy",
     "editor.toolbar.button.save": "Save",
+    "editor.toolbar.button.add-row": "Add row",
     "editor.toolbar.button.delete": "Delete",
     "editor.toolbar.button.delete-row": "Delete row",
     "editor.toolbar.button.reload": "Reload Value",
@@ -38,6 +39,8 @@ export default {
     "editor.delete.tip.confirm": "Are you sure you want to delete this key?",
     "editor.delete-row.tip.confirm": "Are you sure you want to delete this row of data?",
     "editor.save.key.confirm": "Are you sure you want to change this key?",
+    "editor.save.hash.tip": "The field value cannot be empty",
+    "editor.save.zset.tip": "Member or points cannot be empty",
     "editor.save.success": "Save successfully",
     "editor.delete.success": "Delete successfully",
 

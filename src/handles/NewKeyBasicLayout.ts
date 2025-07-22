@@ -44,19 +44,19 @@ export class NewKeyBasicLayout extends NewConnBasicLayout {
         btn.disabled = true, btn.role = 'icon-loading'
 
         if (type === "string")
-            fun = APIs.string.set(selectServerId, selectDatabase, name, value)
+            fun = APIs.string.set(name, value)
 
         if (type === "hash")
-            fun = APIs.hash.set(selectServerId, selectDatabase, name, field, value)
+            fun = APIs.hash.set(name, field, value)
 
         if (type === "zset")
-            fun = APIs.zset.add(selectServerId, selectDatabase, name, member, score)
+            fun = APIs.zset.add(name, member, score)
 
         if (type === "list")
-            fun = APIs.list.lPush(selectServerId, selectDatabase, name, value)
+            fun = APIs.list.lPush(name, value)
 
         if (type === "set")
-            fun = APIs.sset.add(selectServerId, selectDatabase, name, value)
+            fun = APIs.sset.add(name, value)
 
         fun?.then((model: any) => {
             if (model.isSuccess()) {
@@ -104,7 +104,7 @@ export class NewKeyBasicLayout extends NewConnBasicLayout {
         const {selectServerId, selectDatabase} = window
 
         e.disabled = true
-        APIs.delete(selectServerId, selectDatabase, groupKey, true).then(model => {
+        APIs.delete(groupKey, true).then(model => {
             if (model.isSuccess()) {
                 this.deleteKey(groupKey)
             } else {

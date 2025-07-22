@@ -105,6 +105,7 @@ td,th,span,p,i,label,div,i,em,img,span,label{cursor:inherit}
 pre{white-space:pre-line!important}
 textarea{word-break:break-all;height:auto;resize:none}
 .tooltipped:after{font-size:12px !important;padding:5px 10px}
+.tooltipped-n:after{padding: 7px 10px !important;}
 
 button,input,textarea,select{
     vertical-align:middle;

@@ -121,6 +121,7 @@ interface Window {
     selectServer: Server;
     selectServerId: string;
     selectDatabase: number;
+    selectKeyType: string;
 
 }
 

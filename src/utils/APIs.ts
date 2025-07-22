@@ -22,23 +22,24 @@ const APIs = {
         if (!id) return null;
         return Service.eventSource(id)
     },
-    keyspace(id: string, db: number, filter?: string) {
-        const url = [id, '/', db];
+    keyspace(filter?: string) {
+        const {selectServerId,selectDatabase} = window
+        const url = [selectServerId, '/', selectDatabase];
         if (filter) url.push("?filter=", filter)
         return Service.eventSource(url.join(""))
     },
 
-    values(id: string, db: number, type: string, key: string) {
-        console.log('api.values', window.selectServerId, window.selectDatabase)
-        return Service.eventSource([id, db, "get", type, key].join("/"))
+    values(type: string, key: string) {
+        const {selectServerId,selectDatabase} = window
+        return Service.eventSource([selectServerId, selectDatabase, "get", type, key].join("/"))
     },
 
 
-    sendCmd(id:string, db:number, opOrMethod:string, type:string | null, data: any) {
-        const uri = [id, db, opOrMethod]
+    sendCmd(opOrMethod:string, type:string | null, data: any) {
+        const {selectServerId,selectDatabase} = window
+        const uri = [selectServerId, selectDatabase, opOrMethod]
         type && uri.push(type)
 
-        console.log('api.sendCmd', window.selectServerId, window.selectDatabase)
         return Service.post(uri.join("/"), data).then(model => {
             if (model.code == 505)
                 return model;
@@ -49,47 +50,47 @@ const APIs = {
             return model
         })
     },
-    type(id: string, db: number, key: string) {
-        return this.sendCmd(id, db, "type", null, {key})
+    type(key: string) {
+        return this.sendCmd("type", null, {key})
     },
-    expire(id:string, db:number, key:string, seconds:number) {
-        return this.sendCmd(id, db, "expire", null, {key,value:seconds})
+    expire(key:string, seconds:number) {
+        return this.sendCmd("expire", null, {key,value:seconds})
     },
-    delete(id:string, db:number, key:string, isGroup?:boolean) {
-        return this.sendCmd(id,db,"delete", null, {key,isGroup})
+    delete(key:string, isGroup?:boolean) {
+        return this.sendCmd("delete", null, {key,isGroup})
     },
-    rename(id: string, db: number, oldKey: string, key:string) {
+    rename(oldKey: string, key:string) {
         const data = {force:0, oldKey, key}
-        return this.sendCmd(id,db,"rename", null, data).then(model => {
+        return this.sendCmd("rename", null, data).then(model => {
             if (model.code == 505 && confirm("The key name already exists, do you want to overwrite it?")) {
                 data.force = 1
-                return this.sendCmd(id, db, "rename", null, data)
+                return this.sendCmd("rename", null, data)
             }
             return model
         })
     },
 
     string: {
-        set(id:string, db:number, key:string, value: any){
-            return APIs.sendCmd(id,db,"set", "string", {key,value})
+        set(key:string, value: any){
+            return APIs.sendCmd("set", "string", {key,value})
         },
     },
 
     hash: {
-        set(id:string, db:number, key:string, field:string, value: any, oldField?:string){
+        set(key:string, field:string, value: any, oldField?:string){
             if (oldField)
-                return this.rename(id, db, key, oldField, field, value)
-            return APIs.sendCmd(id,db,"set", "hash", {key,field,value,oldField})
+                return this.rename(key, oldField, field, value)
+            return APIs.sendCmd("set", "hash", {key,field,value,oldField})
         },
-        del(id:string, db:number, key:string, field:string){
-            return APIs.sendCmd(id,db,"del", "hash", {key,field})
+        del(key:string, field:string){
+            return APIs.sendCmd("del", "hash", {key,field})
         },
-        rename(id:string, db:number, key:string, oldField:string, newField:string, value?:any){
+        rename( key:string, oldField:string, newField:string, value?:any){
             const data = {key,oldField,newField,value,force:0}
-            return APIs.sendCmd(id,db,"rename", "hash", data).then(model => {
+            return APIs.sendCmd("rename", "hash", data).then(model => {
                 if (model.code == 505 && confirm("The key name already exists, do you want to overwrite it?")) {
                     data.force = 1
-                    return APIs.sendCmd(id, db, "rename", "hash",data)
+                    return APIs.sendCmd("rename", "hash",data)
                 }
                 return model
             })
@@ -97,46 +98,46 @@ const APIs = {
     },
 
     zset: {
-        add(id:string, db:number, key:string, value:any, score:any){
-            return APIs.sendCmd(id,db,"add", "zset",{key,value,score})
+        add(key:string, value:any, score:any){
+            return APIs.sendCmd("add", "zset",{key,value,score})
         },
-        set(id:string, db:number, key:string, value:any, score:any, oldValue?:any){
+        set(key:string, value:any, score:any, oldValue?:any){
             if (oldValue)
-                return this.rename(id, db, key, oldValue, value, score)
-            return APIs.sendCmd(id,db,"set", "zset",{key,value,score})
+                return this.rename(key, oldValue, value, score)
+            return APIs.sendCmd("set", "zset",{key,value,score})
         },
-        del(id:string, db:number, key:string, value:any){
-            return APIs.sendCmd(id,db,"del", "zset",{key,value})
+        del(key:string, value:any){
+            return APIs.sendCmd("del", "zset",{key,value})
         },
-        rename(id:string, db:number, key:string, oldValue:any, newValue:any, score:any){
-            return APIs.sendCmd(id,db,"rename", "zset",{key,oldValue,newValue,score})
+        rename(key:string, oldValue:any, newValue:any, score:any){
+            return APIs.sendCmd("rename", "zset",{key,oldValue,newValue,score})
         }
     },
 
     list: {
-        lPush(id:string, db:number, key:string, value:any){
-            return APIs.sendCmd(id,db,"lpush", "list",{key,value})
+        lPush(key:string, value:any){
+            return APIs.sendCmd("lpush", "list",{key,value})
         },
-        rPush(id:string, db:number, key:string, value:any){
-            return APIs.sendCmd(id,db,"rpush", "list",{key,value})
+        rPush(key:string, value:any){
+            return APIs.sendCmd("rpush", "list",{key,value})
         },
-        set(id:string, db:number, key:string, value:any, index:any){
-            return APIs.sendCmd(id,db,"set", "list",{key,value,index})
+        set(key:string, value:any, index:any){
+            return APIs.sendCmd("set", "list",{key,value,index})
         },
-        del(id:string, db:number, key:string, index:any){
-            return APIs.sendCmd(id,db,"del", "list",{key,index})
+        del(key:string, index:any){
+            return APIs.sendCmd("del", "list",{key,index})
         }
     },
 
     sset: {
-        add(id:string, db:number, key:string, value:any){
-            return APIs.sendCmd(id,db,"add", "set",{key,value})
+        add(key:string, value:any){
+            return APIs.sendCmd("add", "set",{key,value})
         },
-        set(id:string, db:number, key:string, value:any, oldValue: any){
-            return APIs.sendCmd(id,db,"set", "set",{key,value,oldValue})
+        set(key:string, value:any, oldValue: any){
+            return APIs.sendCmd("set", "set",{key,value,oldValue})
         },
-        del(id:string, db:number, key:string, value:any){
-            return APIs.sendCmd(id,db,"del", "set",{key,value})
+        del(key:string, value:any){
+            return APIs.sendCmd("del", "set",{key,value})
         },
     },
 

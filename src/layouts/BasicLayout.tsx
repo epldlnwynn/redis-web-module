@@ -69,6 +69,7 @@ export default class BasicLayout extends NewKeyBasicLayout {
         window.selectServer = this.findServerById(serverId);
         window.selectServerId = serverId;
         window.selectDatabase = db.index;
+        window.selectKeyType = key.type
 
         history.push(["", "info", serverId, db.index, key.full as string].join("/"))
     }
@@ -104,9 +105,6 @@ export default class BasicLayout extends NewKeyBasicLayout {
                             <button onClick={e => window.open('https://github.com/epldlnwynn/redis-web-module')}>
                                 <Icon type="icon-github"></Icon>
                             </button>
-                            {/*<button>*/}
-                            {/*    <Icon type="icon-twitter"></Icon>*/}
-                            {/*</button>*/}
                         </div>
 
                         <div className={styles.buttonGroups}>
@@ -114,7 +112,7 @@ export default class BasicLayout extends NewKeyBasicLayout {
                                 <Icon type="icon-full-screen"></Icon>
                             </button>
                             <button onClick={this.handleSettings.bind(this)}>
-                                <Icon type="icon-settings"></Icon>
+                                <Icon type="icon-settings" style={{padding: '1px'}}></Icon>
                             </button>
                         </div>
 

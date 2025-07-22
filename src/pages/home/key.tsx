@@ -14,7 +14,7 @@ export default () => {
     const {id,db,name:full} = useParams<{id:string;db:any;type:string;name:string}>()
     const [loadState, setLoadState] = useState('end')
     const [key, setKey] = useState<KeyInfo>({name:full,full,type:"",count:0,children:[],ttl:-1})
-    let ttl = 0, type = "string";
+    let ttl = 0, type = window.selectKeyType || "none";
 
 
     const intervalTimer = (time: number) => {
@@ -31,7 +31,7 @@ export default () => {
     }
     const loadKeyData = () => {
         console.log('type', type)
-        eventSource = APIs.values(id, db, type, full)
+        eventSource = APIs.values(type, full)
         if (!eventSource) return undefined;
 
         eventSource.on("info", data => {
@@ -69,7 +69,7 @@ export default () => {
     }
     const handleSetTTL = (ttl: number, e: HTMLButtonElement) => {
         e.disabled = true
-        APIs.expire(id,db,full,ttl).then(model => {
+        APIs.expire(full,ttl).then(model => {
             if (model.isSuccess()) {
                 key.ttl = ttl
                 setKey({...key})
@@ -81,7 +81,7 @@ export default () => {
     }
     const handleDelete = (name: string, e: HTMLButtonElement) => {
         e.disabled = true
-        APIs.delete(id, db, name).then(model => {
+        APIs.delete(name).then(model => {
             if (model.isSuccess()) {
                 eventBus.emit("eventDelete", id, db, key.full)
                 toast(intl.get("editor.delete.success"))
@@ -92,25 +92,26 @@ export default () => {
         })
     }
     const handleDeleteItem = (e: HTMLButtonElement) => {
-        let fun: any = null, index = key.itemIndex || -1
-        if (index == undefined || index == -1)
+        console.log('handleDeleteItem', key.itemIndex)
+        let fun: any = null
+        if (key.itemIndex == undefined)
             return
 
         e.disabled = true
         if (key.type === "list")
-            fun = APIs.list.del(id, db, full, key.itemIndex)
+            fun = APIs.list.del(full, key.itemIndex)
 
         if (key.type === "hash" && key.field)
-            fun = APIs.hash.del(id, db, full, key.field)
+            fun = APIs.hash.del(full, key.field)
 
         if (key.type === "zset" && key.field)
-            fun = APIs.zset.del(id,db, full, key.content)
+            fun = APIs.zset.del(full, key.content)
 
         if (key.type === "set")
-            fun = APIs.sset.del(id, db, full, key.content)
+            fun = APIs.sset.del(full, key.content)
 
         fun?.finally(() => {
-            key.children?.splice(index, 1)
+            key.children?.splice(key.itemIndex || 0, 1)
             key.field = undefined
             key.content = undefined
             key.itemIndex = undefined
@@ -123,20 +124,48 @@ export default () => {
         let fun: any = null
 
         if (key.type === "hash") {
-            fun = APIs.hash.set(id, db, full, field, value, field === key.field ? undefined : key.field).then(model => {
-                // @ts-ignore
-                key.children[key.itemIndex].field = field, key.children[key.itemIndex].value = value
-            });
+            if (!field){
+                toast(intl.get("editor.save.hash.tip"))
+                return;
+            }
+
+            fun = APIs.hash.set(full, field, value, field === key.field ? undefined : key.field).then(model => {
+                if (key.itemIndex == undefined) {
+                    key.children?.push({field,value})
+                    key.field = "", key.content = ""
+                } else {
+                    // @ts-ignore
+                    key.children[key.itemIndex].field = field, key.children[key.itemIndex].value = value
+                }
+            })
         }
 
-        if (key.type === "zset")
-            fun = APIs.zset.set(id, db, full, field, value, field === key.field ? undefined : key.field).then(model => {
-                // @ts-ignore
-                key.children[key.itemIndex].value = field, key.children[key.itemIndex].score = value
-            })
+        if (key.type === "zset") {
+            if (!field || !value){
+                toast(intl.get("editor.save.zset.tip"))
+                return;
+            }
+            if (key.itemIndex == undefined) {
+                fun = APIs.zset.add(full, field, value).then(model => {
+                    key.children?.push({value:field, score:value})
+                    key.field = "", key.content = ""
+                })
+            } else {
+                fun = APIs.zset.set(full, field, value, field === key.field ? undefined : key.field).then(model => {
+                    // @ts-ignore
+                    key.children[key.itemIndex].value = field, key.children[key.itemIndex].score = value
+                })
+            }
 
+        }
 
         fun?.finally(() => {
+
+            if (key.type === "zset" && key.children) {
+                const newList = key.children.sort((a,b) => b.score - a.score)
+                key.children = [...newList]
+            }
+
             setKey({...key})
             e.disabled = false
         })
@@ -148,23 +177,41 @@ export default () => {
         let fun = null;
 
         if (key.type === "string")
-            fun = APIs.string.set(id, db, full, value).then(model => {
+            fun = APIs.string.set(full, value).then(model => {
                 key.content = isJSON(value) ? JSON.parse(value) : value
             });
 
-        if (key.type === "list")
-            fun = APIs.list.set(id, db, full, value, key.itemIndex).then(model => {
-                if (key.itemIndex != undefined && key.children) {
-                    key.children[key.itemIndex] = value
+        if (key.type === "list") {
+            if (key.itemIndex == undefined) {
+                fun = APIs.list.lPush(full, value).then(model => {
+                    // @ts-ignore
+                    key.children.unshift(isJSON(value) ? JSON.parse(value) : value)
+                    key.content = ''
+                })
+            } else {
+                fun = APIs.list.set(full, value, key.itemIndex).then(model => {
+                    // @ts-ignore
+                    key.children[key.itemIndex] = isJSON(value) ? JSON.parse(value) : value
                     key.content = isJSON(value) ? JSON.parse(value) : value
-                }
-            })
+                })
+            }
 
-        if (key.type === "set")
-            fun = APIs.sset.set(id, db, full, value, key.content).then(model => {
-                // @ts-ignore
-                key.children[key.itemIndex] = value, key.content = isJSON(value) ? JSON.parse(value) : value
-            })
+        }
+
+        if (key.type === "set") {
+            if (key.itemIndex == undefined) {
+                fun = APIs.sset.add(full, value).then(model => {
+                    // @ts-ignore
+                    key.content = ""
+                    key.children?.push(isJSON(value) ? JSON.parse(value) : value)
+                })
+            } else {
+                fun = APIs.sset.set(full, value, key.content).then(model => {
+                    // @ts-ignore
+                    key.children[key.itemIndex] = value, key.content = isJSON(value) ? JSON.parse(value) : value
+                })
+            }
+        }
 
 
         fun?.finally(() => {
@@ -175,7 +222,7 @@ export default () => {
     }
     const handleRenameSave = (oldKey: string, newKey: string, e: HTMLButtonElement) => {
         e.disabled = true
-        APIs.rename(id, db, oldKey, newKey).then(model => {
+        APIs.rename(oldKey, newKey).then(model => {
             if (model.isSuccess()) {
                 key.full = newKey
                 eventBus.emit("eventUpdate", id,db, oldKey, key)
@@ -185,22 +232,29 @@ export default () => {
             e.disabled = false
         })
     }
-    const handleSelectedItem = (item: any, index: number) => {
-        if (key.type == "hash") {
-            key.field = item.field
-            key.size = item.value.toString().length
-            key.content = isJSON(item.value) ? JSON.parse(item.value) : item.value
-        }
+    const handleSelectedItem = (item: any, index: any) => {
+        console.log('handleSelectedItem', item, index)
 
-        if (key.type == "list" || key.type == "set") {
-            key.size = item.length
-            key.content = isJSON(item) ? JSON.parse(item) : item
-        }
+        if (item) {
+            if (key.type == "hash") {
+                key.field = item.field
+                key.size = item.value.toString().length
+                key.content = isJSON(item.value) ? JSON.parse(item.value) : item.value
+            }
 
-        if (key.type == "zset") {
-            key.field = item.value
-            key.content = item.score
-            key.size = item.score.toString().length
+            if (key.type == "list" || key.type == "set") {
+                key.size = item.length
+                key.content = isJSON(item) ? JSON.parse(item) : item
+            }
+
+            if (key.type == "zset") {
+                key.field = item.value
+                key.content = item.score
+                key.size = item.score.toString().length
+            }
+        } else {
+            key.field = undefined
+            key.content = ""
         }
 
         key.itemIndex = index
@@ -210,12 +264,20 @@ export default () => {
 
     useEffect(() => {
 
+        if (!window.selectServerId) window.selectServerId = id;
+        if (!window.selectDatabase) window.selectDatabase = db;
+
+
         window.clearInterval(timeoutId)
         setLoadState('start')
-        APIs.type(id, db, full).then(model => {
-            type = model.data
+        if (type == "none") {
+            APIs.type(full).then(model => {
+                window.selectKeyType = type = model.data
+                loadKeyData()
+            })
+        } else {
             loadKeyData()
-        })
+        }
 
         return () => eventSource?.close()
     }, [id, db, full])

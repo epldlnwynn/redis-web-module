@@ -24,6 +24,7 @@ export default {
 
     "editor.toolbar.button.copy": "复制",
     "editor.toolbar.button.save": "保存",
+    "editor.toolbar.button.add-row": "添加行",
     "editor.toolbar.button.delete": "删除",
     "editor.toolbar.button.delete-row": "删除行",
     "editor.toolbar.button.reload": "重新载入",
@@ -38,6 +39,8 @@ export default {
     "editor.delete.tip.confirm": "确定要删除该键吗？",
     "editor.delete-row.tip.confirm": "确定要删除该行数据吗？",
     "editor.save.key.confirm": "确定要更改该键吗？",
+    "editor.save.hash.tip": "字段值不能为空",
+    "editor.save.zset.tip": "成员或积分不能为空",
     "editor.save.success": "保存成功",
     "editor.delete.success": "删除成功",
 

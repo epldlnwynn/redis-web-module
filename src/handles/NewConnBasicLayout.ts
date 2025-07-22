@@ -77,7 +77,7 @@ export class NewConnBasicLayout extends SettingBasicLayout {
         dbs.state = 'query'
         this.updateServerList()
 
-        const source = APIs.keyspace(serverId || selectServerId, dbs.index, filter)
+        const source = APIs.keyspace(filter)
         if (source) {
             source.onopen = e => {
                 dbs.expand = true
@@ -97,7 +97,7 @@ export class NewConnBasicLayout extends SettingBasicLayout {
         const key = this.findKey(group) || {} as any
         const {selectServerId, selectDatabase} = window, T = this
 
-        const source = APIs.keyspace(selectServerId, selectDatabase, group + "*")
+        const source = APIs.keyspace(group + "*")
         if (source) {
             e.disabled = true
             source.on("keyspace", data => {
