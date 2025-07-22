@@ -6,7 +6,7 @@ import useRedisContext from "@/hooks/use-redis-context";
 export default () => {
     const context = useRedisContext()
 
-    return (<div className={styles.indexWrap}>
+    return (<div className={styles.indexWrap} lang={context.lang}>
 
         <div className={styles.readme}>
             <img src="/static/favicon/logo.png" width={200} />

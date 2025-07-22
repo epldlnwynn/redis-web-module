@@ -5,12 +5,14 @@ import {useHistory, useParams} from "umi";
 import RedisEditor from "@/components/redis-editor";
 import intl from "@/utils/intl";
 import eventBus from "listen-events";
+import useRedisContext from "@/hooks/use-redis-context";
 
 
 
 let timeoutId = 0, eventSource: EventSource | null = null
 export default () => {
     const history = useHistory()
+    const context = useRedisContext()
     const {id,db,name:full} = useParams<{id:string;db:any;type:string;name:string}>()
     const [loadState, setLoadState] = useState('end')
     const [key, setKey] = useState<KeyInfo>({name:full,full,type:"",count:0,children:[],ttl:-1})
@@ -283,7 +285,7 @@ export default () => {
     }, [id, db, full])
 
 
-    return <div className={styles.keyWrap}>
+    return <div className={styles.keyWrap} lang={context.lang}>
 
         <RedisEditor data={key}
                      state={loadState}
