@@ -107,7 +107,7 @@ export default () => {
             fun = APIs.hash.del(full, key.field)
 
         if (key.type === "zset" && key.field)
-            fun = APIs.zset.del(full, key.content)
+            fun = APIs.zset.del(full, key.field)
 
         if (key.type === "set")
             fun = APIs.sset.del(full, key.content)
